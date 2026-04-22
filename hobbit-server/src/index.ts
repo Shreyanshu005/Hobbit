@@ -1,23 +1,20 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import 'dotenv/config'
 
-dotenv.config();
+const REQUIRED_ENV_VARS = ['GEMINI_API_KEY', 'FRONTEND_URL'] as const
 
-const app = express();
-const port = process.env.PORT || 5000;
+for (const key of REQUIRED_ENV_VARS) {
+  if (!process.env[key]) {
+    console.error(`[startup] Missing required environment variable: ${key}`)
+    process.exit(1)
+  }
+}
 
-app.use(cors());
-app.use(express.json());
+import createApp from './app'
 
-app.get('/', (req: Request, res: Response) => {
-  res.json({ message: 'Hobbit Server is running' });
-});
+const PORT = Number(process.env.PORT) || 3000
 
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'OK' });
-});
+const app = createApp()
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+app.listen(PORT, () => {
+  console.log(`[server] Running on port ${PORT} in ${process.env.NODE_ENV ?? 'development'} mode`)
+})
