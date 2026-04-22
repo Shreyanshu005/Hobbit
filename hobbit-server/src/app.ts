@@ -14,8 +14,10 @@ const createApp = (): Application => {
             origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
             methods: ['GET', 'POST'],
             allowedHeaders: ['Content-Type'],
+            credentials: true,
         })
     )
+   
 
     app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 
