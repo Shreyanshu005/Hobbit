@@ -1,12 +1,19 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { usePlan } from '../../hooks/usePlan';
 import { useProgressStore } from '../../stores/useProgressStore';
-import { HobbyHeader } from '../../components/HobbyHeader';
 import type { Technique, Section } from '../../types';
 import { cn } from '../../utils/cn';
-import { CheckCircle2, Clock, Play, BookOpen } from 'lucide-react';
+
+import { 
+  CheckCircle2, 
+  Clock, 
+  Play, 
+  ChevronLeft, 
+  ChevronRight
+} from 'lucide-react';
 
 const SECTION_META: Record<Section, { label: string; number: number }> = {
   foundation: { label: 'Fundamentals', number: 1 },
@@ -16,66 +23,17 @@ const SECTION_META: Record<Section, { label: string; number: number }> = {
 
 const SECTION_ORDER: Section[] = ['foundation', 'building', 'advanced'];
 
-function TechniqueRow({ technique, status, onClick, isLast }: {
-  technique: Technique;
-  status: string;
-  onClick: () => void;
-  isLast: boolean;
-}) {
-  const isDone = status === 'done';
-  const isInProgress = status === 'in-progress';
-  const isPending = status === 'pending';
-
-  return (
-    <button onClick={onClick} className="flex items-start gap-5 group w-full text-left py-2">
-      {/* Timeline connector */}
-      <div className="flex flex-col items-center pt-1">
-        <div className={cn(
-          "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all border-2",
-          isDone && "bg-emerald-500 border-emerald-500 text-white",
-          isInProgress && "bg-[#6d58e0] border-[#6d58e0] text-white",
-          isPending && "bg-white border-slate-200 text-slate-400 group-hover:border-[#6d58e0] group-hover:text-[#6d58e0]"
-        )}>
-          {isDone ? <CheckCircle2 size={18} /> :
-            isInProgress ? <Play size={16} fill="white" /> :
-              <Clock size={16} />}
-        </div>
-        {!isLast && (
-          <div className={cn(
-            "w-[2px] flex-1 min-h-[32px]",
-            isDone ? "bg-emerald-300" : "bg-slate-200"
-          )} />
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="pb-6 flex-1 min-w-0">
-        <h4 className={cn(
-          "text-lg font-semibold leading-snug transition-colors",
-          isDone && "text-emerald-800",
-          isInProgress && "text-[#6d58e0]",
-          isPending && "text-slate-800 group-hover:text-[#6d58e0]"
-        )}>
-          {technique.title}
-        </h4>
-        <p className={cn(
-          "text-sm mt-0.5 font-medium",
-          isDone ? "text-emerald-600/70" : "text-slate-400"
-        )}>
-          {isDone ? 'Completed' :
-            isInProgress ? 'In Progress' :
-              `${technique.difficulty} · ${technique.estimatedMinutes} min`}
-        </p>
-      </div>
-    </button>
-  );
-}
-
 export default function PlanDetailPage() {
   const { hobbyId } = useParams<{ hobbyId: string }>();
   const navigate = useNavigate();
   const { plan, isLoading, error } = usePlan(hobbyId);
   const { getHobbyProgress, getTechniqueStatus } = useProgressStore();
+
+  useEffect(() => {
+    if (plan && plan.techniques.length > 0) {
+      navigate(`/technique/${plan.hobbyId}/${plan.techniques[0].id}`, { replace: true });
+    }
+  }, [plan, navigate]);
 
   if (isLoading) return <LoadingSpinner message="Loading your path..." />;
   if (error || !plan) return <div className="flex items-center justify-center min-h-[60vh] text-rose-500 text-lg font-medium">{error || 'Plan not found'}</div>;
@@ -83,7 +41,6 @@ export default function PlanDetailPage() {
   const progress = getHobbyProgress(plan.hobbyId);
   const completedCount = progress?.completedTechniqueIds.length || 0;
 
-  // Group techniques by section
   const sections = SECTION_ORDER.map(section => ({
     section,
     ...SECTION_META[section],
@@ -91,60 +48,138 @@ export default function PlanDetailPage() {
   })).filter(s => s.techniques.length > 0);
 
   return (
-    <div className="max-w-3xl mx-auto pt-8 pb-20">
-      <HobbyHeader name={plan.hobby} />
+    <div className="flex flex-col h-full bg-transparent">
+      <header className="h-16 border-b border-gray-100 flex items-center justify-between px-6 shrink-0 z-20">
+        <div className="flex items-center gap-4">
+          <Link to="/dashboard" className="p-1 hover:bg-gray-50 rounded-lg transition-colors">
+            <div className="w-8 h-8 flex items-center justify-center">
+              <ChevronLeft size={24} className="text-gray-400" />
+            </div>
+          </Link>
+          <h2 className="text-lg font-medium text-gray-900 tracking-tight">{plan.hobby}</h2>
+        </div>
+        
+        <div />
+      </header>
 
-      {/* Top nav tabs */}
-      <div className="flex items-center gap-6 mb-10 border-b border-black/5 pb-4">
-        <button className="flex items-center gap-2 text-base font-semibold text-[#6d58e0] border-b-2 border-[#6d58e0] pb-1">
-          <BookOpen size={16} /> Learning Map
-        </button>
-        <span className="text-sm text-slate-400 font-medium">
-          {completedCount}/{plan.techniques.length} completed · {plan.estimatedTotalHours}h total
-        </span>
-      </div>
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="w-[280px] border-r border-black/5 flex flex-col shrink-0 bg-[#fff9ef] backdrop-blur-xl">
+          <div className="p-6 pb-2">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Lessons</h3>
+          </div>
 
-      {/* Sections */}
-      <div className="space-y-8">
-        {sections.map((sec, secIdx) => {
-          const sectionDone = sec.techniques.filter(t => getTechniqueStatus(plan.hobbyId, t.id) === 'done').length;
-          return (
-            <motion.div
-              key={sec.section}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: secIdx * 0.1 }}
-            >
-              {/* Section header card */}
-              <div className="bg-[#faf9f6] border border-black/5 rounded-2xl px-6 py-4 mb-6 flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900">
-                    {sec.number}. {sec.label}
-                  </h3>
-                  <p className="text-sm text-slate-400 font-medium mt-0.5">
-                    {sectionDone}/{sec.techniques.length} lessons
-                  </p>
-                </div>
-                <div className="w-9 h-9 rounded-lg border border-black/5 bg-white flex items-center justify-center">
-                  <BookOpen size={16} className="text-slate-400" />
-                </div>
-              </div>
+          <div className="flex-1 overflow-y-auto px-4 space-y-8 pb-10">
+            <nav className="space-y-1">
+              <button
+                className="w-full text-left flex flex-col rounded-xl px-4 py-3 bg-white shadow-sm border border-gray-100 text-gray-900"
+              >
+                <span className="text-[15px] font-semibold text-gray-900">Learning Map</span>
+                <span className="text-[11px] font-bold text-indigo-500 uppercase tracking-wider mt-1">Overview</span>
+              </button>
+              
+              <div className="pt-4 px-4 mb-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Lessons</div>
+              {plan.techniques.map((t) => {
+                const tStatus = getTechniqueStatus(plan.hobbyId, t.id);
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => navigate(`/technique/${plan.hobbyId}/${t.id}`)}
+                    className="w-full text-left flex flex-col rounded-xl px-4 py-3 text-gray-500 hover:bg-gray-100/50 transition-all"
+                  >
+                    <span className="text-[15px] font-medium text-gray-600">
+                      {t.title}
+                    </span>
+                    {tStatus === 'done' && (
+                      <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-wider mt-1">Completed</span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </aside>
 
-              {/* Technique timeline */}
-              <div className="pl-4 md:pl-10">
-                {sec.techniques.map((technique: Technique, idx: number) => (
-                  <TechniqueRow
-                    key={technique.id}
-                    technique={technique}
-                    status={getTechniqueStatus(plan.hobbyId, technique.id)}
-                    onClick={() => navigate(`/technique/${plan.hobbyId}/${technique.id}`)}
-                    isLast={idx === sec.techniques.length - 1}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          );
-        })}
+        <main className="flex-1 overflow-y-auto bg-transparent">
+          <div className="max-w-4xl mx-auto py-20">
+            <header className="mb-16">
+              <h1 className="text-5xl font-bold text-slate-900 mb-6 leading-[1.1]">
+                Learning Map
+              </h1>
+              <p className="text-xl font-medium text-gray-400 tracking-tight">
+                {completedCount} of {plan.techniques.length} lessons completed · {plan.estimatedTotalHours} hours total
+              </p>
+            </header>
+
+            <div className="space-y-16">
+              {sections.map((sec, secIdx) => (
+                <motion.div
+                  key={sec.section}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: secIdx * 0.1 }}
+                >
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold text-lg">
+                      {sec.number}
+                    </div>
+                    <h3 className="text-3xl font-bold text-slate-900">
+                      {sec.label}
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    {sec.techniques.map((technique: Technique) => {
+                      const status = getTechniqueStatus(plan.hobbyId, technique.id);
+                      const isDone = status === 'done';
+                      const isInProgress = status === 'in-progress';
+                      
+                      return (
+                        <button
+                          key={technique.id}
+                          onClick={() => navigate(`/technique/${plan.hobbyId}/${technique.id}`)}
+                          className={cn(
+                            "group flex items-center justify-between p-6 rounded-[24px] border-2 transition-all text-left",
+                            isDone ? "bg-emerald-50/50 border-emerald-100" : 
+                            isInProgress ? "bg-indigo-50/50 border-indigo-100 shadow-sm" :
+                            "bg-white border-gray-100 hover:border-gray-200"
+                          )}
+                        >
+                          <div className="flex items-center gap-5">
+                            <div className={cn(
+                              "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                              isDone ? "bg-emerald-500 text-white" : 
+                              isInProgress ? "bg-indigo-600 text-white" :
+                              "bg-gray-50 text-gray-400 group-hover:bg-gray-100"
+                            )}>
+                              {isDone ? <CheckCircle2 size={24} /> : 
+                               isInProgress ? <Play size={20} fill="white" /> :
+                               <Clock size={20} />}
+                            </div>
+                            <div>
+                              <h4 className={cn(
+                                "text-xl font-semibold",
+                                isDone ? "text-emerald-900" : "text-gray-900"
+                              )}>
+                                {technique.title}
+                              </h4>
+                              <p className="text-sm font-medium text-gray-400 mt-1">
+                                {technique.difficulty} · {technique.estimatedMinutes} min
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronRight className={cn(
+                            "w-5 h-5 transition-transform group-hover:translate-x-1",
+                            isDone ? "text-emerald-300" : "text-gray-300"
+                          )} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );

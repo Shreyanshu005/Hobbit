@@ -9,7 +9,7 @@ export function HobbyHeader({ name }: HobbyHeaderProps) {
     <div className="flex items-center justify-between mb-10">
       <div className="relative inline-block">
         <h1
-          className="text-4xl md:text-5xl font-semibold tracking-tight text-slate-900 capitalize relative z-10"
+          className="text-3xl md:text-5xl font-semibold tracking-tight text-slate-900 capitalize relative z-10"
           style={{ fontFamily: "'Caveat', cursive, ui-sans-serif, system-ui" }}
         >
           {name}

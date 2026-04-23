@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Folder, CalendarDays, Trash2 } from 'lucide-react';
+import { Folder, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/atoms/Button';
 import { CreateCollectionModal } from '../../components/CreateCollectionModal';
@@ -12,52 +12,60 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const collections = useCollectionStore(s => s.collections);
   const deleteCollection = useCollectionStore(s => s.deleteCollection);
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
 
   return (
-    <div className="max-w-4xl mx-auto px-0 md:px-0 pt-6 md:pt-10 pb-28 md:pb-14">
+    <div className="max-w-4xl mx-auto px-4 md:px-0 pt-6 md:pt-10 pb-28 md:pb-14">
       <div className="flex items-center justify-between md:justify-end mb-6">
         <img src={logoPng} alt="Hobbit" className="w-20 h-14 md:hidden" />
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-white border border-black/5 text-base font-semibold text-slate-700">
-          <CalendarDays className="w-4 h-4 text-[#00bdff]" />
-          <span className="text-slate-700">{today}</span>
+        <div 
+          className="text-3xl tracking-tight text-slate-900"
+          style={{ fontFamily: "'Caveat', cursive" }}
+        >
+          Hobbit
         </div>
       </div>
       <section className="bg-[#f1effc] rounded-[8px] overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-6 p-8">
-          <div>
-            <p className="text-sm md:text-base font-semibold font-title text-[#b0afb3] mb-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>A virtual assistant to</p>
-            <h1
-              className="text-3xl md:text-5xl font-normal tracking-tight text-slate-900 mb-6 md:mb-10"
-              style={{ fontFamily: "'Caveat', cursive, ui-sans-serif, system-ui" }}
-            >
-              <span className="text-[#6d58e0] font-normal">Master your next</span>{' '}
-              <span className="text-slate-900 font-semibold">hobby.</span>
-            </h1>
-            <Link to="/onboarding?fresh=1">
-              <Button
-                className="rounded-full px-4 py-2 "
-                size="lg"
-                style={{ backgroundColor: '#f6af40', color: '#1f2937' }}
-              >
-                Try Now
-              </Button>
-            </Link>
-          </div>
+       <div className="grid grid-cols-[3fr_2fr] md:grid-cols-[1fr_260px] gap-3 md:gap-6 p-8">
+  
+  <div>
+    <p className="text-lg md:text-xl font-semibold text-[#b0afb3] mb-4 md:mb-6">
+      A virtual assistant to
+    </p>
 
-          <div className="hidden md:flex items-center justify-end">
-            <img
-              src={learningSvg}
-              alt="Learning"
-              className="h-[210px] w-auto"
-            />
-          </div>
-        </div>
+    <h1
+      className="text-4xl md:text-5xl tracking-tight text-slate-900 mb-4 md:mb-10"
+      style={{ fontFamily: "'Caveat', cursive" }}
+    >
+      <span className="text-[#6d58e0]">Master your next</span>
+      <span className="block font-semibold">hobby.</span>
+    </h1>
+
+    <Link to="/onboarding?fresh=1">
+      <Button
+        className="rounded-full px-4 py-2 font-bold"
+        size="lg"
+        style={{ backgroundColor: '#f6af40', color: '#1f2937' }}
+      >
+        Try Now
+      </Button>
+    </Link>
+  </div>
+
+  <div className="flex items-center justify-center md:justify-end">
+    <img
+      src={learningSvg}
+      alt="Learning"
+      className="w-auto max-w-[160px] md:max-w-none h-auto"
+    />
+  </div>
+
+</div>
       </section>
 
       <section className="mt-16 md:mt-32">
         <div className="flex items-baseline gap-4 mb-20 md:mb-0">
-          <h2 className="text-3xl md:text-4xl font-semibold text-slate-900 shrink-0">Collections</h2>
+          <h2 className="text-3xl md:text-4xl font-semibold text-slate-900 shrink-0">Conversations</h2>
           <div className="h-[2px] flex-1 bg-black/10 translate-y-[-4px]" />
         </div>
 
@@ -65,6 +73,12 @@ export default function DashboardPage() {
           <div
             className="group relative bg-white border border-black/5 transition-shadow rounded-2xl h-full flex flex-col p-6 min-h-[180px]"
           >
+            <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0">
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 300 200" preserveAspectRatio="none">
+                <ellipse cx="46.5" cy="245" rx="159.5" ry="146" fill="#F1EFFC" className="transition-transform transform scale-0 group-hover:scale-100 duration-150 origin-bottom-left"></ellipse>
+                <ellipse cx="46.5" cy="285" rx="148.5" ry="136" fill="#E2DEF9" className="transition-transform transform scale-0 group-hover:scale-100 duration-150 origin-bottom-left"></ellipse>
+              </svg>
+            </div>
             <div className="absolute left-[0px] top-[-50px] pointer-events-none z-30">
               <img
                 src={card1Svg}
@@ -73,18 +87,20 @@ export default function DashboardPage() {
               />
             </div>
 
-            <div className="h-10 mb-4" />
-            <div className="text-lg text-[#1d1627] mb-4 max-w-[20rem] font-medium">
-              Create your own custom collections for events, meetings, tests etc.
-            </div>
-            <div className="mt-auto flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowModal(true)}
-                className="px-6 py-2 rounded-full text-sm font-semibold text-indigo-700 border border-indigo-200 bg-white transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 shadow-sm"
-              >
-                Create New Collection
-              </button>
+            <div className="relative z-10 h-full flex flex-col">
+              <div className="h-10 mb-4" />
+              <div className="text-lg text-[#1d1627] mb-4 max-w-[20rem] font-medium">
+                Create custom collections to organize your hobbies, learning plans, and progress.
+              </div>
+              <div className="mt-auto flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(true)}
+                  className="px-6 py-2 rounded-full text-sm font-semibold text-indigo-700 border border-indigo-200 bg-white transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 shadow-sm"
+                >
+                  Create New Collection
+                </button>
+              </div>
             </div>
           </div>
 

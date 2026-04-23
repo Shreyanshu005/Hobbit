@@ -19,7 +19,9 @@ export function LoadingSpinner({ size = 120, message, fullHeight = true }: Loadi
         <div className={`flex flex-col items-center justify-center gap-4 ${fullHeight ? 'min-h-[60vh]' : ''}`}>
             {View}
             {message && (
-                <p className="text-base font-medium text-slate-400">{message}</p>
+                <p className="text-base font-medium text-slate-400 text-center px-5 max-w-[90vw] md:max-w-xl">
+                    {message}
+                </p>
             )}
         </div>
     );

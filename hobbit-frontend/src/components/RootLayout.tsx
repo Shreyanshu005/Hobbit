@@ -32,10 +32,11 @@ export function RootLayout() {
   const [mobileChatMenuOpen, setMobileChatMenuOpen] = useState(false);
 
   const isChatPage = location.pathname === '/onboarding' || !!match;
+  const isPlanPage = location.pathname.startsWith('/plan/') || location.pathname.startsWith('/technique/');
   const isFresh = searchParams.get('fresh') === '1';
   const showSidebar = isChatPage && !isFresh;
 
-  // Open mobile sidebar for collection pages
+  // Open mobile sidebar for collection page
   useEffect(() => {
     const isMobile = window.innerWidth < 1024;
     const isCollectionPage = !!location.pathname.match(/^\/collection\/(.+)$/);
@@ -62,41 +63,41 @@ export function RootLayout() {
         showSidebar ? "lg:grid-cols-[80px_280px_1fr_80px]" : "lg:grid-cols-[80px_1fr_80px]"
       )}>
         <aside className="hidden lg:block border-r border-black/5 bg-[#fff9ef] backdrop-blur-xl sticky top-0 h-screen w-[80px]">
-          <div className="h-full flex flex-col items-center py-5">
-            <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center mb-3">
-              <img src={logoPng} alt="Hobbit" className="w-20 h-20 object-contain" />
+            <div className="h-full flex flex-col items-center py-5">
+              <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center mb-3">
+                <img src={logoPng} alt="Hobbit" className="w-20 h-20 object-contain" />
+              </div>
+              <nav className="flex flex-col gap-1">
+                {leftNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const currentPath = location.pathname + (location.search || '');
+                  const isActive = currentPath === item.href || (item.name === 'Explore' && location.pathname === '/onboarding' && !isFresh);
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={cn(
+                        'flex flex-col items-center gap-1 group transition-colors',
+                        isActive ? 'text-slate-900 font-bold' : 'text-slate-500'
+                      )}
+                      onClick={() => {
+                        if (item.name === 'Explore' && window.innerWidth < 1024) {
+                          setMobileChatMenuOpen(true);
+                        }
+                      }}
+                      aria-label={item.name}
+                      title={item.name}
+                    >
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center">
+                        <Icon className="w-5 h-5" strokeWidth={isActive ? 2 : 1.5} />
+                      </div>
+                      <span className={cn("text-base leading-none", isActive ? "font-bold" : "font-medium")}>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
             </div>
-            <nav className="flex flex-col gap-1">
-              {leftNavItems.map((item) => {
-                const Icon = item.icon;
-                const currentPath = location.pathname + (location.search || '');
-                const isActive = currentPath === item.href || (item.name === 'Explore' && location.pathname === '/onboarding' && !isFresh);
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={cn(
-                      'flex flex-col items-center gap-1 group transition-colors',
-                      isActive ? 'text-slate-900 font-bold' : 'text-slate-500'
-                    )}
-                    onClick={() => {
-                      if (item.name === 'Explore' && window.innerWidth < 1024) {
-                        setMobileChatMenuOpen(true);
-                      }
-                    }}
-                    aria-label={item.name}
-                    title={item.name}
-                  >
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center">
-                      <Icon className="w-5 h-5" strokeWidth={isActive ? 2 : 1.5} />
-                    </div>
-                    <span className={cn("text-base leading-none", isActive ? "font-bold" : "font-medium")}>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-        </aside>
+          </aside>
 
         {showSidebar && (
           <>
@@ -227,13 +228,14 @@ export function RootLayout() {
           )}
           <main className={cn(
             "flex-1 overflow-y-auto",
-            isChatPage ? (isFresh ? "pt-4 lg:pt-0" : "pt-16 lg:pt-0 max-h-[calc(100vh-4rem)]") : "px-4 pb-28 lg:px-8 lg:pb-12"
+            isChatPage ? (isFresh ? "pt-4 lg:pt-0" : "pt-16 lg:pt-0 max-h-[calc(100vh-4rem)]") : (isPlanPage ? "pb-28 lg:pb-12" : "px-0 pb-28 lg:px-8 lg:pb-12")
           )}>
             <Outlet />
           </main>
         </div>
 
         <aside className="hidden lg:block border-l border-black/5 bg-[#fff9ef] backdrop-blur-xl sticky top-0 h-screen w-[80px]">
+
           <div className="h-full flex flex-col items-center py-5">
             <nav className="flex flex-col gap-1">
               {rightNavItems.map((item) => {
@@ -260,6 +262,7 @@ export function RootLayout() {
         </aside>
 
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-3 py-3 bg-[#fff9ef]">
+
           <div className="flex items-center justify-evenly">
             {leftNavItems.map((item) => {
               const Icon = item.icon;
@@ -293,6 +296,7 @@ export function RootLayout() {
             </button>
           </div>
         </nav>
+
 
         {/* Mobile Right Sidebar Overlay */}
         <div

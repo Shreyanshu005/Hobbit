@@ -1,6 +1,14 @@
-import { useState, Suspense, lazy } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, CheckCircle2, Video, BookOpen, Sparkles, AlertCircle, Dumbbell, Trophy } from 'lucide-react';
+import { useState, useEffect, Suspense, lazy, useMemo } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { 
+  ChevronLeft, 
+  CheckCircle2, 
+  AlertCircle, 
+  Dumbbell, 
+  Trophy, 
+  Layout, 
+  ExternalLink
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlan } from '../../hooks/usePlan';
 import { useProgressStore } from '../../stores/useProgressStore';
@@ -13,31 +21,37 @@ export default function TechniqueDetailPage() {
   const { hobbyId, techniqueId } = useParams<{ hobbyId: string; techniqueId: string }>();
   const navigate = useNavigate();
   const { plan, isLoading } = usePlan(hobbyId);
-  const { toggleTechnique, getTechniqueStatus } = useProgressStore();
+  const { getTechniqueStatus } = useProgressStore();
 
-  const [showCelebration, setShowCelebration] = useState(false);
+  const [showCelebration] = useState(false);
   const [scenarioResult, setScenarioResult] = useState<{ answered: boolean; correct: boolean | null }>({ answered: false, correct: null });
+  const [sidebarExpanded, setSidebarExpanded] = useState(window.innerWidth > 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 1024) {
+        setSidebarExpanded(false);
+      } else {
+        setSidebarExpanded(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const technique = useMemo(() => plan?.techniques.find(t => t.id === techniqueId), [plan, techniqueId]);
+  
+
+
 
   if (isLoading || !plan) return <LoadingSpinner message="Loading technique..." />;
-
-  const technique = plan.techniques.find(t => t.id === techniqueId);
   if (!technique) return <div className="flex items-center justify-center min-h-[60vh] text-rose-500 text-lg font-medium">Technique not found</div>;
 
-  const status = getTechniqueStatus(plan.hobbyId, technique.id);
-  const isDone = status === 'done';
 
-  const handleMarkDone = () => {
-    if (!isDone) {
-      toggleTechnique(plan.hobbyId, technique.id);
-      setShowCelebration(true);
-      setTimeout(() => {
-        setShowCelebration(false);
-        navigate(`/plan/${plan.hobbyId}`);
-      }, 1500);
-    } else {
-      toggleTechnique(plan.hobbyId, technique.id);
-    }
-  };
+
+
+
 
   const handleScenarioAnswer = (index: number) => {
     const isCorrect = index === technique.scenarioChallenge?.correctIndex;
@@ -45,8 +59,7 @@ export default function TechniqueDetailPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto pt-6 pb-40 relative px-4">
-      {/* Celebration overlay */}
+    <div className="flex h-full bg-transparent overflow-hidden relative">
       <AnimatePresence>
         {showCelebration && (
           <motion.div
@@ -68,184 +81,240 @@ export default function TechniqueDetailPage() {
         )}
       </AnimatePresence>
 
-      {/* Back button */}
-      <button
-        onClick={() => navigate(`/plan/${plan.hobbyId}`)}
-        className="flex items-center gap-2 text-slate-400 font-medium text-base hover:text-slate-900 transition-colors mb-8 group"
-      >
-        <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-        Back to Path
-      </button>
+      <AnimatePresence>
+        {sidebarExpanded && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSidebarExpanded(false)}
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Header */}
-      <header className="mb-14">
-        <div className="flex flex-wrap items-center gap-2.5 mb-5">
-          <span className={cn(
-            "text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-black/10 text-slate-700"
-          )}>
-            {technique.difficulty}
-          </span>
-          <span className="text-xs font-medium text-slate-400 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100">
-            {technique.section}
-          </span>
-          <span className="text-xs font-medium text-[#6d58e0] px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100">
-            {technique.estimatedMinutes} min
-          </span>
-        </div>
-        <h1 className="text-3xl md:text-5xl font-semibold text-slate-900 tracking-tight leading-tight mb-5">
-          {technique.title}
-        </h1>
-        <p className="text-xl font-medium text-slate-500 leading-relaxed max-w-2xl">
-          {technique.whyItMatters}
-        </p>
-      </header>
-
-      <div className="space-y-14">
-        {/* Visual Learning */}
-        <section>
-          <div className="flex items-center gap-2 text-[#6d58e0] mb-5">
-            <Video size={18} />
-            <span className="text-base font-semibold">Visual Learning</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {technique.videos.length > 0 ? technique.videos.map((video) => (
-              <a
-                key={video.videoId}
-                href={video.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group bg-white rounded-2xl border border-black/5 overflow-hidden hover:shadow-md hover:shadow-black/5 transition-all shadow-sm"
-              >
-                <div className="aspect-video relative overflow-hidden">
-                  <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-rose-600 shadow-xl">
-                      <Video size={22} fill="currentColor" />
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h4 className="font-semibold text-slate-900 line-clamp-2 text-base leading-snug mb-1">{video.title}</h4>
-                  <p className="text-sm font-medium text-slate-400">{video.channelName}</p>
-                </div>
-              </a>
-            )) : (
-              <div className="md:col-span-2 py-12 bg-slate-50 rounded-2xl text-center border border-dashed border-slate-200">
-                <p className="text-slate-400 font-medium text-base">Search YouTube for "{technique.youtubeSearchQueries[0]}"</p>
-              </div>
+      <AnimatePresence initial={false}>
+        {sidebarExpanded && (
+          <motion.aside
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 280, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+            className={cn(
+              "border-r border-black/5 flex flex-col shrink-0 bg-[#fff9ef] backdrop-blur-xl overflow-hidden h-full z-40",
+              "fixed lg:relative top-0 bottom-0 left-0 lg:left-auto shadow-2xl lg:shadow-none"
             )}
-          </div>
-        </section>
-
-        {/* Key Concepts */}
-        <section>
-          <div className="flex items-center gap-2 text-[#6d58e0] mb-5">
-            <BookOpen size={18} />
-            <span className="text-base font-semibold">Key Concepts</span>
-          </div>
-          <div className="bg-white rounded-2xl p-6 md:p-8 space-y-5 shadow-sm border border-black/5">
-            {technique.readingPoints.map((point, idx) => (
-              <div key={idx} className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-[#f1effc] flex items-center justify-center text-[#6d58e0] font-semibold text-sm shrink-0">
-                  {idx + 1}
-                </div>
-                <p className="text-lg font-medium text-slate-700 leading-relaxed pt-0.5">{point}</p>
+          >
+            <div className="w-[280px] h-full flex flex-col">
+              <div className="p-6 border-b border-black/5 mb-2">
+                <h2 className="text-xl font-bold text-slate-900 tracking-tight">{plan.hobby}</h2>
               </div>
-            ))}
-          </div>
-        </section>
+              
+              <div className="p-6 py-2">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Lessons</h3>
+              </div>
 
-        {/* Practice Session */}
-        <section>
-          <div className="flex items-center gap-2 text-[#6d58e0] mb-5">
-            <Dumbbell size={18} />
-            <span className="text-base font-semibold">Practice Session</span>
+              <div className="flex-1 overflow-y-auto px-4 space-y-1 pb-10">
+                {plan.techniques.map((t) => {
+                  const tStatus = getTechniqueStatus(plan.hobbyId, t.id);
+                  const isActive = t.id === technique.id;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                      navigate(`/technique/${plan.hobbyId}/${t.id}`);
+                      if (window.innerWidth <= 1024) {
+                        setSidebarExpanded(false);
+                      }
+                    }}
+                      className={cn(
+                        'w-full text-left flex flex-col rounded-xl px-4 py-3 transition-all border-2',
+                        isActive 
+                          ? 'border-slate-900 bg-transparent shadow-none text-gray-900' 
+                          : 'border-transparent text-gray-500 hover:bg-black/5'
+                      )}
+                    >
+                      <span className={cn(
+                        'text-[15px] font-medium leading-snug',
+                        isActive ? 'font-semibold text-gray-900' : 'text-gray-600'
+                      )}>
+                        {t.title}
+                      </span>
+                      {tStatus === 'done' && !isActive && (
+                        <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-wider mt-1">Completed</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      <div className="flex-1 flex flex-col min-w-0 h-full">
+        <header className="h-16 border-b border-gray-100 flex items-center justify-between px-6 shrink-0 z-20 bg-[#fffbf4]/50 backdrop-blur-md">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarExpanded(!sidebarExpanded)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-slate-500"
+              title={sidebarExpanded ? "Hide Lessons" : "Show Lessons"}
+            >
+              <Layout size={20} className={cn("transition-transform", !sidebarExpanded && "rotate-180")} />
+            </button>
+            <div className="w-px h-6 bg-gray-100 mx-1 hidden lg:block" />
+            <Link to="/dashboard" className="p-1 hover:bg-gray-50 rounded-lg transition-colors">
+              <div className="w-8 h-8 flex items-center justify-center">
+                <ChevronLeft size={24} className="text-gray-400" />
+              </div>
+            </Link>
           </div>
-          <div className="bg-[#110d19] rounded-2xl p-8 text-white shadow-xl shadow-black/10 relative overflow-hidden">
-            <div className="relative z-10">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                Action Step
-                <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-indigo-300 border border-white/10 font-medium">Required</span>
-              </h3>
-              <p className="text-lg font-medium text-slate-300 leading-relaxed">
-                {technique.practicePrompt}
+          
+          <div className="flex items-center gap-4">
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto bg-transparent relative w-full">
+          <div className="max-w-4xl mx-auto px-6 md:px-10 py-12 md:py-20 pb-40">
+            <div className="mb-16">
+              <div className="relative inline-block mb-6">
+                <h1 className="text-3xl md:text-5xl font-bold text-slate-900 leading-[1.1] relative z-10">
+                  {technique.title}
+                </h1>
+                <svg
+                  className="absolute -bottom-4 left-0 w-[110%] text-[#6d58e0]/40 pointer-events-none -translate-x-[5%]"
+                  viewBox="0 0 100 20"
+                  preserveAspectRatio="none"
+                  style={{ height: '0.4em' }}
+                >
+                  <path d="M 2 10 Q 50 0 98 15" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+                </svg>
+              </div>
+              <p className="text-lg md:text-xl font-medium text-gray-400 mb-10 tracking-tight">
+                {technique.whyItMatters}
               </p>
-            </div>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 blur-[100px] -mr-32 -mt-32" />
-          </div>
-        </section>
 
-        {/* Strategic Challenge */}
-        {plan.hobbyCategory === 'strategic' && technique.scenarioChallenge && (
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex items-center gap-2 text-amber-600 mb-5">
-              <Trophy size={18} />
-              <span className="text-base font-semibold">Strategic Challenge</span>
-            </div>
-            <div className="bg-amber-50/80 rounded-2xl p-8 border border-amber-200/50 shadow-sm">
-              <h3 className="text-xl font-semibold text-amber-900 mb-6">{technique.scenarioChallenge.prompt}</h3>
-              <div className="grid grid-cols-1 gap-3">
-                {technique.scenarioChallenge.options.map((option, idx) => (
-                  <button
-                    key={idx}
-                    disabled={scenarioResult.answered}
-                    onClick={() => handleScenarioAnswer(idx)}
-                    className={cn(
-                      "w-full text-left p-4 rounded-xl font-medium text-base transition-all border",
-                      !scenarioResult.answered
-                        ? "bg-white border-white hover:border-amber-400 text-slate-700"
-                        : idx === technique.scenarioChallenge?.correctIndex
-                          ? "bg-emerald-500 border-emerald-500 text-white"
-                          : "bg-white border-rose-200 text-slate-400 opacity-50"
-                    )}
-                  >
-                    {option}
-                  </button>
+              <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed font-medium">
+                {technique.readingPoints.map((point, idx) => (
+                  <div key={idx} className="mb-10 group">
+                    <h3 className="text-2xl font-bold text-slate-900 mb-4">
+                      Concept {idx + 1}
+                    </h3>
+                    <p className="text-lg text-gray-600/90 leading-relaxed">
+                      {point}
+                    </p>
+                  </div>
                 ))}
               </div>
-              {scenarioResult.answered && (
-                <div className="mt-6 p-6 bg-white rounded-xl border border-amber-200 shadow-sm animate-in zoom-in-95 duration-300">
-                  <p className="text-amber-900 font-medium text-base leading-relaxed">{technique.scenarioChallenge.explanation}</p>
-                </div>
-              )}
             </div>
-          </section>
-        )}
 
-        {/* Common Mistakes */}
-        <section>
-          <div className="flex items-center gap-2 text-rose-500 mb-5">
-            <AlertCircle size={18} />
-            <span className="text-base font-semibold">Common Mistakes</span>
-          </div>
-          <div className="bg-rose-50/50 rounded-2xl p-6 md:p-8 border border-rose-100 space-y-4">
-            {technique.commonMistakes.map((mistake, idx) => (
-              <div key={idx} className="flex gap-4">
-                <div className="w-7 h-7 rounded-full bg-rose-100 flex items-center justify-center text-rose-500 font-semibold text-xs shrink-0">
-                  !
+            <div className="flex flex-col gap-8">
+              <section className="bg-transparent rounded-2xl p-8 border border-black/5">
+                <div className="flex items-center gap-3 text-slate-900 mb-6">
+                  <Dumbbell size={20} strokeWidth={2.5} />
+                  <span className="text-sm font-bold uppercase tracking-wider">Practice Session</span>
                 </div>
-                <p className="text-base font-medium text-rose-900/80 leading-relaxed">{mistake}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4">Action Step</h3>
+                <p className="text-lg text-slate-700 leading-relaxed">
+                  {technique.practicePrompt}
+                </p>
+              </section>
 
-      {/* Fixed bottom action button */}
-      <footer className="fixed bottom-12 left-1/2 -translate-x-1/2 w-full max-w-lg px-8 z-50">
-        <button
-          onClick={handleMarkDone}
-          className={cn(
-            "w-full py-5 rounded-full text-xl font-semibold flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl",
-            isDone
-              ? "bg-slate-200 text-slate-500"
-              : "bg-[#6d58e0] text-white hover:bg-[#5a47c4] shadow-indigo-200"
-          )}
-        >
-          {isDone ? <CheckCircle2 size={24} /> : <Sparkles size={24} />}
-          {isDone ? 'Mastered!' : 'Complete Lesson'}
-        </button>
-      </footer>
+              <section className="bg-transparent rounded-2xl p-8 border border-black/5">
+                <div className="flex items-center gap-3 text-slate-900 mb-6">
+                  <AlertCircle size={20} strokeWidth={2.5} />
+                  <span className="text-sm font-bold uppercase tracking-wider">Common Mistakes</span>
+                </div>
+                <div className="space-y-4">
+                  {technique.commonMistakes.map((mistake, idx) => (
+                    <div key={idx} className="flex gap-3">
+                      <span className="text-slate-400 font-bold shrink-0 mt-0.5">•</span>
+                      <p className="text-base text-slate-600 font-medium leading-relaxed">{mistake}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            <section className="mt-20">
+              <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-3 text-gray-900">
+                  <h2 className="text-2xl font-bold">Visual Demonstrations</h2>
+                </div>
+                <span className="text-sm font-medium text-gray-400">{technique.videos.length} Videos</span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {technique.videos.map((video) => (
+                  <a
+                    key={video.videoId}
+                    href={video.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex flex-col gap-3 rounded-2xl overflow-hidden"
+                  >
+                    <div className="aspect-video rounded-2xl overflow-hidden relative border border-gray-100">
+                      <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-white/90 backdrop-blur shadow-xl flex items-center justify-center scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all">
+                          <ExternalLink size={20} className="text-gray-900 ml-0.5" />
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[17px] font-semibold text-gray-900 leading-snug line-clamp-2">
+                        {video.title}
+                      </div>
+                      <div className="text-sm font-medium text-gray-400 mt-1">
+                        {video.channelName}
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+            
+            {plan.hobbyCategory === 'strategic' && technique.scenarioChallenge && (
+              <section className="mt-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="flex items-center gap-3 text-slate-900 mb-8 border-b border-black/5 pb-4">
+                  <Trophy size={20} />
+                  <h2 className="text-2xl font-bold">Strategic Challenge</h2>
+                </div>
+                <div className="bg-transparent rounded-2xl p-8 border border-black/5">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-8 leading-tight">{technique.scenarioChallenge.prompt}</h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    {technique.scenarioChallenge.options.map((option, idx) => (
+                      <button
+                        key={idx}
+                        disabled={scenarioResult.answered}
+                        onClick={() => handleScenarioAnswer(idx)}
+                        className={cn(
+                          "w-full text-left p-6 rounded-xl font-medium text-[17px] transition-all border-2",
+                          !scenarioResult.answered
+                            ? "bg-white border-white hover:border-slate-300 text-gray-700 shadow-sm"
+                            : idx === technique.scenarioChallenge?.correctIndex
+                              ? "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-100"
+                              : "bg-white/50 border-gray-100 text-gray-400 opacity-50"
+                        )}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                  {scenarioResult.answered && (
+                    <div className="mt-8 p-6 bg-white/80 rounded-xl border border-black/5">
+                      <p className="text-slate-900 font-medium text-lg leading-relaxed">{technique.scenarioChallenge.explanation}</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
+
+          <div className="h-20" />
+
+        </main>
+      </div>
     </div>
   );
 }

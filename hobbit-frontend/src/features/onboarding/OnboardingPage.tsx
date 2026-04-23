@@ -75,6 +75,13 @@ export default function OnboardingPage() {
   const [factIndex, setFactIndex] = useState(0);
   const [shouldScrollOnNextMessage, setShouldScrollOnNextMessage] = useState(false);
 
+  const isNearBottom = () => {
+    const el = scrollRef.current;
+    if (!el) return true;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    return distanceFromBottom < 120;
+  };
+
   // State persistence
   useEffect(() => {
     if (isFresh) {
@@ -166,13 +173,10 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (shouldScrollOnNextMessage && scrollRef.current) {
       const scrollElement = scrollRef.current;
-      scrollElement.scrollTop = scrollElement.scrollHeight;
-      setTimeout(() => {
-        scrollElement.scrollTo({
-          top: scrollElement.scrollHeight,
-          behavior: 'smooth'
-        });
-      }, 20);
+      scrollElement.scrollTo({
+        top: scrollElement.scrollHeight,
+        behavior: 'smooth'
+      });
       setShouldScrollOnNextMessage(false);
     }
   }, [messages, shouldScrollOnNextMessage]);
@@ -181,7 +185,7 @@ export default function OnboardingPage() {
     const basicError = validateHobby(input);
     if (basicError) {
       setMessages(prev => [...prev, { role: 'user', content: input }]);
-      setShouldScrollOnNextMessage(true);
+      setShouldScrollOnNextMessage(isNearBottom());
       setInput('');
       setStatus('checking');
       setTimeout(() => {
@@ -195,7 +199,7 @@ export default function OnboardingPage() {
     const rawInput = input.trim();
     const extractedHobby = extractHobby(rawInput);
     setMessages(prev => [...prev, { role: 'user', content: rawInput }]);
-    setShouldScrollOnNextMessage(true);
+    setShouldScrollOnNextMessage(isNearBottom());
     setInput('');
 
     try {
@@ -236,6 +240,7 @@ export default function OnboardingPage() {
 
   const handleOptionSelect = (option: string, field: 'level' | 'goal') => {
     setMessages(prev => [...prev, { role: 'user', content: option }]);
+    setShouldScrollOnNextMessage(true);
     setStatus('checking');
     if (field === 'level') {
       const mappedLevel = option.toLowerCase().includes('beginner') ? 'beginner' :
@@ -297,7 +302,7 @@ export default function OnboardingPage() {
       ) : (
         <>
           {messages.filter(m => m.role !== 'system').length <= 1 && (
-            <div className="w-full text-center text-slate-400 font-medium text-sm md:text-base pt-4 shrink-0">
+            <div className="w-full text-center text-slate-400 font-medium text-lg md:text-xl pt-4 shrink-0">
               To personalize your course, let's understand your requirements.
             </div>
           )}
@@ -310,7 +315,7 @@ export default function OnboardingPage() {
                     msg.role === 'user' ? "items-end" : "items-start"
                   )}>
                     {msg.role === 'user' ? (
-                      <div className="text-slate-900 font-medium max-w-[85%] text-[15px] md:text-[17px] text-right bg-black/5 px-4 py-2 rounded-2xl rounded-tr-sm">
+                      <div className="text-slate-900 font-medium max-w-[85%] text-lg md:text-xl text-right bg-black/5 px-4 py-2 rounded-2xl rounded-tr-sm">
                         {msg.content}
                       </div>
                     ) : (
@@ -324,7 +329,7 @@ export default function OnboardingPage() {
                               if (!line.trim()) return null;
                               if (line.match(/^[-_*]{3,}$/)) return <hr key={i} className="my-2 border-black/10 w-full" />;
                               return (
-                                <p key={i} className="text-[15px] md:text-[17px] font-medium text-[#1d1627] leading-relaxed">
+                                <p key={i} className="text-lg md:text-xl font-medium text-[#1d1627] leading-relaxed">
                                   {line.replace(/[*#]/g, '')}
                                 </p>
                               );
@@ -336,7 +341,7 @@ export default function OnboardingPage() {
                                 <button
                                   key={opt}
                                   onClick={() => handleOptionSelect(opt, msg.field!)}
-                                  className="px-5 py-2.5 rounded-2xl border-2 border-slate-200 text-slate-800 font-semibold text-sm md:text-base hover:border-slate-800 transition-all cursor-pointer"
+                                  className="px-5 py-2.5 rounded-2xl border-2 border-slate-200 text-slate-800 font-semibold text-lg md:text-xl hover:border-slate-800 transition-all cursor-pointer"
                                 >
                                   {opt}
                                 </button>
