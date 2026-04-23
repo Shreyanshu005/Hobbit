@@ -12,9 +12,13 @@ const createApp = (): Application => {
 
     app.use(
         cors({
-            origin: process.env.FRONTEND_URL ?? 'https://hobbit-chi.vercel.app',
-            methods: ['GET', 'POST'],
-            allowedHeaders: ['Content-Type'],
+            origin: [
+                'http://localhost:5173',
+                'https://hobbit-chi.vercel.app',
+                process.env.FRONTEND_URL
+            ].filter(Boolean) as string[],
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
             credentials: true,
         })
     )

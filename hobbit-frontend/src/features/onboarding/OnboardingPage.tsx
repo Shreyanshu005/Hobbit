@@ -162,17 +162,13 @@ export default function OnboardingPage() {
         ]);
       }, 2000);
     } catch (err) {
-      setHobby(extractedHobby);
       setTimeout(() => {
-        setStatus('idle');
+        setStatus('error');
         setMessages(prev => [
           ...prev,
           {
             role: 'assistant',
-            content: `That's a great choice! What is your current experience level with ${extractedHobby}?`,
-            type: 'options',
-            field: 'level',
-            options: ['Beginner', 'Know basics', 'Intermediate', 'Advanced']
+            content: `Please check your network or try again later.`
           }
         ]);
       }, 2000);
@@ -226,8 +222,8 @@ export default function OnboardingPage() {
       navigate(`/plan/${plan.hobbyId}`);
     } catch (err: any) {
       setIsGenerating(false);
-      const errorMessage = err.message || "Something went wrong. Let's try again. What hobby are you interested in?";
-      setMessages(prev => [...prev, { role: 'assistant', content: errorMessage }]);
+      setStatus('error');
+      setMessages(prev => [...prev, { role: 'assistant', content: "Please check your network or try again later." }]);
     }
   };
 
