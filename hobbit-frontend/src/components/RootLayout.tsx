@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Home, Compass, Plus, ChevronLeft, MessageSquare, Trash2, User, Settings, Menu, X } from 'lucide-react';
+import { Home, Compass, Plus, ChevronLeft, MessageSquare, Trash2, User, Settings, Menu, X } from 'lucide-react';
 import { useHobbyStore } from '../stores/useHobbyStore';
 import { cn } from '../utils/cn';
 import logoPng from '../assets/logo.png';

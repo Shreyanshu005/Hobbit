@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Globe, ArrowUp } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 import { useHobbyStore } from '../../stores/useHobbyStore';
 import { useCollectionStore } from '../../stores/useCollectionStore';
 import { planService } from '../../services/planService';
