@@ -12,11 +12,7 @@ const createApp = (): Application => {
 
     app.use(
         cors({
-            origin: [
-                'http://localhost:5173',
-                'https://hobbit-chi.vercel.app',
-                process.env.FRONTEND_URL
-            ].filter(Boolean) as string[],
+            origin: true,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization'],
             credentials: true,
@@ -34,7 +30,7 @@ const createApp = (): Application => {
     app.use('/api/validate', validateRouter)
 
     app.use((_req, res) => {
-        res.status(404).json({ success: false, error: 'Route not found' })
+        res.status(404).json({ success: false, error: 'Please check your network and try again.' })
     })
 
     return app
