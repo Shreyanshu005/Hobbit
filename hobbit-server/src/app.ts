@@ -12,13 +12,13 @@ const createApp = (): Application => {
 
     app.use(
         cors({
-            origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+            origin: process.env.FRONTEND_URL ?? 'https://hobbit-chi.vercel.app',
             methods: ['GET', 'POST'],
             allowedHeaders: ['Content-Type'],
             credentials: true,
         })
     )
-   
+
 
     app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 
