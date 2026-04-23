@@ -17,8 +17,9 @@ export function TypewriterText({ text, speed = 10, onComplete }: TypewriterTextP
         setIndex((prev) => prev + 1);
       }, speed);
       return () => clearTimeout(timer);
-    } else if (onComplete) {
+    } else if (index === text.length && onComplete) {
       onComplete();
+      setIndex(text.length + 1); 
     }
   }, [index, text, speed, onComplete]);
 
