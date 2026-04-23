@@ -1,94 +1,152 @@
+import { Folder } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Plus, Trophy, Clock, ChevronRight, Zap } from 'lucide-react';
 import { Button } from '../../components/atoms/Button';
 import { Card } from '../../components/atoms/Card';
-import { useHobbyStore } from '../../stores/useHobbyStore';
-import { useProgressStore } from '../../stores/useProgressStore';
+import learningSvg from '../../assets/learning.svg';
+import card1Svg from '../../assets/card1.svg';
 
 export default function DashboardPage() {
-  const hobbies = useHobbyStore((state) => state.hobbies);
-  const getHobbyProgress = useProgressStore((state) => state.getHobbyProgress);
-
-  if (hobbies.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-        <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10">
-          <Zap className="text-slate-500 w-10 h-10" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2">No active journeys</h2>
-        <p className="text-slate-400 mb-8 max-w-sm">
-          You haven't started learning any hobbies yet. Let's find your first passion.
-        </p>
-        <Link to="/onboarding">
-          <Button size="lg">
-            <Plus className="mr-2" size={20} />
-            Start Onboarding
-          </Button>
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-4xl mx-auto px-4 pt-12 pb-12">
-      <div className="flex items-center justify-between mb-12">
-        <div>
-          <h1 className="text-4xl font-extrabold tracking-tight mb-2">My Journeys</h1>
-          <p className="text-slate-400">Track your skills and progress across your favorite hobbies.</p>
-        </div>
-        <Link to="/onboarding">
-          <Button variant="outline" size="sm">
-            <Plus className="mr-1" size={16} />
-            Add New
-          </Button>
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {hobbies.map((plan) => {
-          const progress = getHobbyProgress(plan.hobbyId);
-          const completedCount = progress?.completedTechniqueIds.length || 0;
-          const totalCount = plan.techniques.length;
-          const percentage = Math.round((completedCount / totalCount) * 100);
-
-          return (
-            <Link key={plan.hobbyId} to={`/plan/${plan.hobbyId}`} className="group">
-              <Card className="p-6 h-full border-white/5 hover:border-indigo-500/50 hover:bg-slate-900/60 group-hover:scale-[1.02]">
-                <div className="flex justify-between items-start mb-6">
-                  <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500">
-                    <Trophy size={24} />
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-white/5 px-3 py-1 rounded-full">
-                    <Clock size={12} />
-                    {plan.level}
-                  </div>
-                </div>
-
-                <h3 className="text-2xl font-bold mb-1">{plan.hobby}</h3>
-                <p className="text-slate-400 text-sm mb-6 line-clamp-1">{plan.goal.replace('-', ' ')} objective</p>
-
-                <div className="space-y-4">
-                  <div className="flex justify-between items-end text-sm">
-                    <span className="text-slate-400 font-medium">Core Techniques ({completedCount}/{totalCount})</span>
-                    <span className="text-indigo-400 font-bold">{percentage}%</span>
-                  </div>
-                  <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(99,102,241,0.5)]"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-white/5 flex items-center text-xs font-semibold text-slate-500 group-hover:text-indigo-400 transition-colors">
-                  Continue Learning
-                  <ChevronRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </Card>
+    <div className="max-w-4xl mx-auto pt-10 pb-14">
+      <section className="rounded-[8px] bg-[#f1effc] overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-6 p-8">
+          <div>
+            <p className="text-title-medium font-semibold font-title text-[#b0afb3] mb-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>A virtual assistant to</p>
+            <h1
+              className="text-4xl md:text-5xl font-normal tracking-tight text-slate-900 mb-10"
+              style={{ fontFamily: "'Caveat', cursive, ui-sans-serif, system-ui" }}
+            >
+              <span className="text-[#6d58e0] font-normal">Master your next</span>{' '}
+              <span className="text-slate-900 font-semibold">hobby.</span>
+            </h1>
+            <Link to="/onboarding">
+              <Button
+                className="rounded-full px-4 py-2"
+                size="lg"
+                style={{ backgroundColor: '#f6af40', color: '#1f2937' }}
+              >
+                Try Now
+              </Button>
             </Link>
-          );
-        })}
-      </div>
+          </div>
+
+          <div className="hidden md:flex items-center justify-end">
+            <img
+              src={learningSvg}
+              alt="Learning"
+              className="h-[210px] w-auto"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-32">
+        <div className="flex items-baseline gap-4">
+          <h2 className="text-4xl font-semibold text-slate-900 shrink-0">Conversation</h2>
+          <div className="h-[2px] flex-1 bg-black/10 translate-y-[-4px]" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-20 max-w-2xl">
+          <Card
+            glass={false}
+            className="group relative bg-white border-black/5 shadow-md shadow-black/5 hover:shadow-sm hover:shadow-black/10 transition-shadow rounded-2xl"
+          >
+            <div className="absolute left-[0px] top-[-50px] pointer-events-none z-30">
+              <img 
+                src={card1Svg} 
+                alt="Card decoration" 
+                className="w-24 h-24 transition-transform duration-150 group-hover:translate-y-2 drop-shadow-sm"
+              />
+            </div>
+            
+            <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0">
+              <div className="absolute left-[-20px] bottom-[-20px]">
+                <svg width="280" height="200" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse
+                    cx="20"
+                    cy="180"
+                    rx="220"
+                    ry="180"
+                    fill="#F1EFFC"
+                    className="transition-transform transform scale-0 group-hover:scale-100 duration-400 origin-bottom-left"
+                  />
+                  <ellipse
+                    cx="20"
+                    cy="180"
+                    rx="180"
+                    ry="140"
+                    fill="#E2DEF9"
+                    className="transition-transform transform scale-0 group-hover:scale-100 duration-600 delay-75 origin-bottom-left"
+                  />
+                </svg>
+              </div>
+            </div>
+            
+            <div className="p-6 relative min-h-[180px] flex flex-col z-10">
+              <div className="h-10 mb-4" /> 
+              <div className="text-lg text-[#1d1627] mb-4 max-w-[20rem] font-medium">
+                Create your own custom collections for events, meetings, tests etc.
+              </div>
+              <div className="mt-auto flex justify-end">
+                <button
+                  type="button"
+                  className="px-6 py-2 rounded-full text-sm font-semibold text-indigo-700 border border-indigo-200 bg-white transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 shadow-sm"
+                >
+                  Create New Collection
+                </button>
+              </div>
+            </div>
+          </Card>
+
+          <Card
+            glass={false}
+            className="group relative bg-white border-black/5 shadow-md shadow-black/5 hover:shadow-sm hover:shadow-black/10 transition-shadow rounded-2xl"
+          >
+            <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0">
+              <div className="absolute left-[-20px] bottom-[-20px]">
+                <svg width="280" height="200" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse
+                    cx="20"
+                    cy="180"
+                    rx="220"
+                    ry="180"
+                    fill="#F1EFFC"
+                    className="transition-transform transform scale-0 group-hover:scale-100 duration-400 origin-bottom-left"
+                  />
+                  <ellipse
+                    cx="20"
+                    cy="180"
+                    rx="180"
+                    ry="140"
+                    fill="#E2DEF9"
+                    className="transition-transform transform scale-0 group-hover:scale-100 duration-600 delay-75 origin-bottom-left"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <div className="p-6 relative min-h-[180px] flex flex-col z-10">
+              <div className="h-10 mb-4 flex items-center gap-3">
+                <Folder className="w-5 h-5 text-slate-600" />
+                <div className="text-lg font-bold text-slate-900" style={{ fontFamily: "'Montserrat', sans-serif" }}>General Collection</div>
+              </div>
+
+              <div className="text-lg text-[#1d1627] mb-5 max-w-[20rem] font-medium">
+                Now save all relevant conversations in a single collection.
+              </div>
+
+              <div className="mt-auto flex justify-end">
+                <button
+                  type="button"
+                  className="px-6 py-2 rounded-full text-sm font-semibold text-indigo-700 border border-indigo-200 bg-white transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 shadow-sm"
+                >
+                  View
+                </button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </section>
     </div>
   );
 }

@@ -5,9 +5,14 @@ import { sendError } from '../utils/response'
 export const planRequestSchema = z.object({
     hobby: z
         .string({ required_error: 'Hobby is required' })
-        .min(2, 'Hobby must be at least 2 characters')
+        .min(3, 'Hobby must be at least 3 characters')
         .max(50, 'Hobby name is too long')
-        .trim(),
+        .trim()
+        .regex(/^[a-zA-Z\s\-']+$/, 'Hobby name must contain only letters')
+        .refine(
+            val => val.trim().split(/\s+/).every(word => word.length >= 2),
+            'Please enter a valid hobby name'
+        ),
     level: z.enum(['beginner', 'intermediate', 'casual'], {
         errorMap: () => ({ message: 'Level must be beginner, intermediate, or casual' }),
     }),

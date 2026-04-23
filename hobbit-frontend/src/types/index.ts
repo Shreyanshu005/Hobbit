@@ -26,9 +26,20 @@ export interface TechniqueStatus {
     completedAt?: string
 }
 
+export type TechniqueUserStatus = 'pending' | 'done' | 'skipped';
+
 export interface UserProgress {
     hobbyId: string
     completedTechniqueIds: string[]
+    skippedTechniqueIds: string[]
     lastActive: string
     streak: number
+    startedAt: string
+}
+
+export interface OnboardingState {
+    step: number
+    hobby: string
+    level: HobbyLevel
+    goal: HobbyGoal
 }

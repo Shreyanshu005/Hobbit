@@ -1,161 +1,168 @@
-import { useState, useEffect, Suspense, lazy } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, CheckCircle2, Video, BookOpen, ExternalLink, Sparkles } from 'lucide-react';
-import { Button } from '../../components/atoms/Button';
-import { Card } from '../../components/atoms/Card';
-import { useHobbyStore } from '../../stores/useHobbyStore';
+import { useState, Suspense, lazy } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ChevronLeft, Play, CheckCircle2, Video, BookOpen, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { usePlan } from '../../hooks/usePlan';
 import { useProgressStore } from '../../stores/useProgressStore';
+import { cn } from '../../utils/cn';
 
 const Confetti = lazy(() => import('../../components/Confetti'));
 
 export default function TechniqueDetailPage() {
   const { hobbyId, techniqueId } = useParams<{ hobbyId: string; techniqueId: string }>();
   const navigate = useNavigate();
-  const { setActiveHobby, activeHobby } = useHobbyStore();
-  const { toggleTechnique, getHobbyProgress } = useProgressStore();
+  const { plan, isLoading } = usePlan(hobbyId);
+  const { toggleTechnique, skipTechnique, getTechniqueStatus } = useProgressStore();
   
-  const [showConfetti, setShowConfetti] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
-  useEffect(() => {
-    if (hobbyId) setActiveHobby(hobbyId);
-  }, [hobbyId, setActiveHobby]);
+  if (isLoading || !plan) return <div className="flex items-center justify-center min-h-[60vh] text-slate-400 font-bold">Loading...</div>;
 
-  const technique = activeHobby?.techniques.find(t => t.id === techniqueId);
-  const progress = activeHobby ? getHobbyProgress(activeHobby.hobbyId) : null;
-  const isCompleted = progress?.completedTechniqueIds.includes(techniqueId || '') || false;
+  const technique = plan.techniques.find(t => t.id === techniqueId);
+  if (!technique) return <div className="flex items-center justify-center min-h-[60vh] text-rose-500 font-bold">Technique not found</div>;
 
-  if (!activeHobby || !technique) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-        <h2 className="text-2xl font-bold mb-4">Technique not found</h2>
-        <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
-      </div>
-    );
-  }
+  const status = getTechniqueStatus(plan.hobbyId, technique.id);
+  const isDone = status === 'done';
 
-  const handleComplete = () => {
-    if (techniqueId && activeHobby) {
-      const alreadyCompleted = isCompleted;
-      toggleTechnique(activeHobby.hobbyId, techniqueId);
-      if (!alreadyCompleted) {
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 5000);
-      }
+  const handleMarkDone = () => {
+    if (!isDone) {
+      toggleTechnique(plan.hobbyId, technique.id);
+      setShowCelebration(true);
+      setTimeout(() => {
+        setShowCelebration(false);
+        navigate(`/plan/${plan.hobbyId}`);
+      }, 1500);
+    } else {
+      toggleTechnique(plan.hobbyId, technique.id);
     }
   };
 
-  const nextTechnique = activeHobby.techniques[activeHobby.techniques.indexOf(technique) + 1];
+  const handleSkip = () => {
+    skipTechnique(plan.hobbyId, technique.id);
+    navigate(`/plan/${plan.hobbyId}`);
+  };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pt-12 pb-32">
-      {showConfetti && (
-        <Suspense fallback={null}>
-          <Confetti />
-        </Suspense>
-      )}
+    <div className="max-w-4xl mx-auto pt-6 pb-40 relative">
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm"
+          >
+            <Suspense fallback={null}><Confetti /></Suspense>
+            <motion.div
+              initial={{ scale: 0.5, rotate: -20 }}
+              animate={{ scale: 1, rotate: 0 }}
+              className="bg-emerald-500 text-white p-12 rounded-[40px] shadow-2xl shadow-emerald-200 flex flex-col items-center gap-6"
+            >
+              <CheckCircle2 size={120} strokeWidth={3} />
+              <h2 className="text-5xl font-black italic">Mastered!</h2>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <Link 
-        to={`/plan/${activeHobby.hobbyId}`} 
-        className="inline-flex items-center text-sm text-slate-500 hover:text-white transition-colors mb-8 group"
+      <button 
+        onClick={() => navigate(`/plan/${plan.hobbyId}`)}
+        className="flex items-center gap-2 text-slate-400 font-bold uppercase tracking-widest text-sm hover:text-slate-900 transition-colors mb-12 group"
       >
-        <ChevronLeft size={16} className="mr-1 group-hover:-translate-x-1 transition-transform" />
-        Back to {activeHobby.hobby} Path
-      </Link>
+        <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+        Back to Path
+      </button>
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-3">
-             <span className="px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-wider">
-               {technique.difficulty}
-             </span>
-             {isCompleted && (
-               <span className="flex items-center gap-1.5 text-green-400 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg bg-green-400/10 border border-green-400/20">
-                 <CheckCircle2 size={12} />
-                 Mastered
-               </span>
-             )}
-          </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">{technique.title}</h1>
-        </div>
-        <Button 
-          variant={isCompleted ? "outline" : "primary"}
-          size="lg"
-          onClick={handleComplete}
-          className="shadow-xl"
-        >
-          {isCompleted ? "Completed" : "Mark as Mastered"}
-          {isCompleted ? <CheckCircle2 className="ml-2" size={20} /> : <Sparkles className="ml-2" size={20} />}
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <Card className="overflow-hidden border-white/5">
-            <div className="aspect-video bg-slate-950 flex flex-col items-center justify-center text-center p-8 group">
-              <div className="w-16 h-16 bg-red-600/10 text-red-500 rounded-full flex items-center justify-center mb-4 border border-red-500/20 group-hover:scale-110 transition-transform duration-500">
-                <Video size={32} />
-              </div>
-              <h3 className="text-xl font-bold mb-2">Expert Demonstration</h3>
-              <p className="text-slate-400 text-sm mb-6 max-w-sm">
-                Watch a curated high-leverage tutorial for this specific technique.
-              </p>
-              <a 
-                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(technique.primaryYoutubeSearchQuery)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button variant="outline" className="rounded-full bg-red-600/10 border-red-500/50 text-red-500 hover:bg-red-600 hover:text-white transition-all">
-                  Watch on YouTube
-                  <ExternalLink className="ml-2" size={16} />
-                </Button>
-              </a>
-            </div>
-          </Card>
-
-          <section>
-            <div className="flex items-center gap-2 mb-6 text-indigo-400">
-              <BookOpen size={20} />
-              <h2 className="text-lg font-bold uppercase tracking-widest text-white">Conceptual Focus</h2>
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-              {technique.readingPoints.map((point, idx) => (
-                <Card key={idx} className="p-5 border-white/5 bg-slate-900/30 hover:bg-slate-900/50 transition-colors">
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-xs font-bold text-slate-500 border border-white/5">
-                      {idx + 1}
-                    </div>
-                    <p className="text-slate-300 leading-relaxed pt-1">{point}</p>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-        </div>
-
-        <div className="space-y-6">
-          <Card className="p-6 border-white/5 bg-indigo-600/5 overflow-hidden relative">
-             <div className="absolute top-0 right-0 p-3 opacity-10">
-               <Sparkles size={64} />
-             </div>
-             <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-[0.2em] mb-4">Why it matters</h3>
-             <p className="text-slate-200 text-sm italic leading-relaxed">
-               "{technique.whyItMatters}"
-             </p>
-          </Card>
-
-          {nextTechnique && (
-            <div className="p-6 rounded-2xl border border-dashed border-white/10 flex flex-col items-center text-center">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Next Up</span>
-              <h4 className="font-bold mb-6">{nextTechnique.title}</h4>
-              <Link to={`/technique/${activeHobby.hobbyId}/${nextTechnique.id}`} className="w-full">
-                <Button variant="ghost" className="w-full text-xs">
-                  See Preview
-                </Button>
-              </Link>
-            </div>
+      <header className="mb-16">
+        <div className="flex items-center gap-3 mb-4">
+          <span className={cn(
+            "text-xs font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full",
+            technique.difficulty === 'beginner' && "bg-emerald-100 text-emerald-700",
+            technique.difficulty === 'intermediate' && "bg-amber-100 text-amber-700",
+            technique.difficulty === 'advanced' && "bg-rose-100 text-rose-700"
+          )}>
+            {technique.difficulty}
+          </span>
+          {isDone && (
+            <span className="flex items-center gap-1.5 text-emerald-600 text-xs font-bold uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+              <CheckCircle2 size={14} />
+              Mastered
+            </span>
           )}
         </div>
+        <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1] mb-8">
+          {technique.title}
+        </h1>
+        <p className="text-xl md:text-2xl font-medium text-slate-400 leading-relaxed max-w-2xl italic">
+          "{technique.whyItMatters}"
+        </p>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+        <section>
+          <div className="flex items-center gap-2 text-indigo-600 mb-6 font-black uppercase tracking-widest">
+            <Video size={20} />
+            Visual Guide
+          </div>
+          <a 
+            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(technique.primaryYoutubeSearchQuery)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block group"
+          >
+            <div className="aspect-video bg-white rounded-[40px] border-4 border-slate-100 flex flex-col items-center justify-center p-8 text-center transition-all group-hover:bg-slate-50 group-hover:border-slate-200 shadow-sm">
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-rose-600 shadow-xl group-hover:scale-110 transition-transform mb-6">
+                <Play size={40} fill="currentColor" />
+              </div>
+              <h3 className="text-xl font-black text-slate-900 mb-2">Search "{technique.primaryYoutubeSearchQuery}"</h3>
+              <p className="text-slate-500 font-bold text-sm">Opens in YouTube</p>
+            </div>
+          </a>
+        </section>
+
+        <section>
+          <div className="flex items-center gap-2 text-indigo-600 mb-6 font-black uppercase tracking-widest">
+            <BookOpen size={20} />
+            Key Insights
+          </div>
+          <div className="bg-white rounded-[40px] p-8 space-y-6 shadow-sm border border-black/5">
+            {technique.readingPoints.map((point, idx) => (
+              <div key={idx} className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 font-black text-sm shrink-0 border-2 border-slate-100">
+                  {idx + 1}
+                </div>
+                <p className="text-lg font-bold text-slate-700 leading-relaxed">
+                  {point}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
+
+      <footer className="fixed bottom-12 left-1/2 -translate-x-1/2 w-full max-w-lg px-8 z-50">
+        <div className="flex flex-col items-center gap-4">
+          <button
+            onClick={handleMarkDone}
+            className={cn(
+              "w-full py-6 rounded-full text-2xl font-black flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl",
+              isDone 
+                ? "bg-slate-200 text-slate-500" 
+                : "bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-200"
+            )}
+          >
+            {isDone ? <CheckCircle2 size={28} /> : <Sparkles size={28} />}
+            {isDone ? 'Mastered!' : 'Mark as Mastered'}
+          </button>
+          
+          <button
+            onClick={handleSkip}
+            className="text-slate-400 font-bold uppercase tracking-widest text-sm hover:text-rose-500 transition-colors"
+          >
+            Skip this technique
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }

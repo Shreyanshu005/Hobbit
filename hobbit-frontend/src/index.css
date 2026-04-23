@@ -1,1 +1,46 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('./assets/Caveat Montserrat Open Sans/Montserrat/Montserrat-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Darker Grotesque';
+  src: url('./assets/Caveat Darker Grotesque Montserrat Open Sans/Darker_Grotesque/DarkerGrotesque-VariableFont_wght.ttf') format('truetype');
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Darker Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-title: "Montserrat", sans-serif;
+  --color-neutral-60: #6b7280; /* Standard gray-500/600 approx */
+  --text-title-medium: 1.5rem; /* Upgraded from 1.125rem */
+}
+
+body {
+  font-family: "Darker Grotesque", ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.75rem; /* Even larger premium size */
+  line-height: 1.1;
+}
+
+@font-face {
+  font-family: 'Caveat';
+  src: url('./assets/Caveat/Caveat-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bradley Hand';
+  src: url('./assets/Bradley Hand Font/BRADHI.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

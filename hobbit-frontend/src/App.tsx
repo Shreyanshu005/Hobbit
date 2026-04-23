@@ -8,12 +8,11 @@ import { RootLayout } from './components/RootLayout';
 import { useHobbyStore } from './stores/useHobbyStore';
 import type { ReactNode } from 'react';
 
-
 const OnboardingPage = lazy(() => import('./features/onboarding/OnboardingPage'));
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const PlanDetailPage = lazy(() => import('./features/techniques/PlanDetailPage'));
 const TechniqueDetailPage = lazy(() => import('./features/techniques/TechniqueDetailPage'));
-
+const CompletionPage = lazy(() => import('./features/completion/CompletionPage'));
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const hobbies = useHobbyStore((state) => state.hobbies);
@@ -66,6 +65,16 @@ const router = createBrowserRouter([
           <ProtectedRoute>
             <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-slate-500">Loading Technique...</div>}>
               <TechniqueDetailPage />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'completion/:hobbyId',
+        element: (
+          <ProtectedRoute>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-slate-500">Loading...</div>}>
+              <CompletionPage />
             </Suspense>
           </ProtectedRoute>
         ),
