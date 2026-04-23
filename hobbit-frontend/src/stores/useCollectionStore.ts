@@ -46,7 +46,7 @@ export const useCollectionStore = create<CollectionState>((set) => ({
     }),
 
     deleteCollection: (id) => set((state) => {
-        if (id === 'general') return state; // Can't delete default
+        if (id === 'general') return state; 
         const updated = state.collections.filter(c => c.id !== id);
         storage.set(STORAGE_KEY, updated);
         return { collections: updated };

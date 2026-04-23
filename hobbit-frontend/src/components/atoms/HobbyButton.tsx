@@ -14,9 +14,9 @@ export function HobbyButton({
   ...props 
 }: HobbyButtonProps) {
   const variants = {
-    primary: 'bg-transparent text-slate-900 border-slate-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)] active:shadow-none',
+    primary: 'bg-white text-slate-900 border-slate-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)] active:shadow-none',
     secondary: 'bg-transparent text-[#f6af40] border-[#f6af40] shadow-[4px_4px_0px_0px_rgba(246,175,64,0.1)] hover:shadow-[2px_2px_0px_0px_rgba(246,175,64,0.1)] active:shadow-none',
-    outline: 'bg-transparent text-slate-900 border-slate-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)] active:shadow-none',
+    outline: 'bg-white text-slate-900 border-slate-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)] active:shadow-none',
     ghost: 'bg-transparent text-slate-600 border-transparent shadow-none hover:bg-black/5'
   };
 

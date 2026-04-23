@@ -1,6 +1,6 @@
 import type { Plan, HobbyLevel, HobbyGoal } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http:
 
 export const planService = {
   getPlan: async (hobby: string, level: HobbyLevel, goal: HobbyGoal): Promise<Plan> => {

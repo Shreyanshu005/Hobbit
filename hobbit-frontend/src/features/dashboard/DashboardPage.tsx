@@ -7,12 +7,12 @@ import { useCollectionStore } from '../../stores/useCollectionStore';
 import learningSvg from '../../assets/learning.svg';
 import card1Svg from '../../assets/card1.svg';
 import logoPng from '../../assets/logo.png';
+import { ConfirmModal } from '../../components/ConfirmModal';
 
 export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const collections = useCollectionStore(s => s.collections);
   const deleteCollection = useCollectionStore(s => s.deleteCollection);
-
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-0 pt-6 md:pt-10 pb-28 md:pb-14">
@@ -117,17 +117,14 @@ export default function DashboardPage() {
               <div className="text-lg text-[#1d1627] mb-5 max-w-[20rem] font-medium">
                 {col.description || 'Your custom collection'}
               </div>
-              <div className="flex items-center justify-between mt-auto">
-                <span className="text-xs text-slate-400 font-medium">{col.hobbyIds.length} hobbies</span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between mt-auto">
+                  <div className="flex items-center gap-2 ml-auto">
                   {col.id !== 'general' && (
                     <button
                       type="button"
                       onClick={(e) => {
                         e.preventDefault();
-                        if (confirm(`Delete collection ${col.name}?`)) {
-                          deleteCollection(col.id);
-                        }
+                        deleteCollection(col.id);
                       }}
                       className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
                     >

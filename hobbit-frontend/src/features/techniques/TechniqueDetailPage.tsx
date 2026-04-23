@@ -14,6 +14,7 @@ import { useProgressStore } from '../../stores/useProgressStore';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { cn } from '../../utils/cn';
 import { HobbyButton } from '../../components/atoms/HobbyButton';
+import { LessonSidebar } from './components/LessonSidebar';
 
 const Confetti = lazy(() => import('../../components/Confetti'));
 
@@ -22,7 +23,7 @@ export default function TechniqueDetailPage() {
   const navigate = useNavigate();
   const mainScrollRef = useRef<HTMLElement>(null);
   const { plan, isLoading } = usePlan(hobbyId);
-  const { getTechniqueStatus } = useProgressStore();
+  const { getTechniqueStatus, toggleTechnique, skipTechnique } = useProgressStore();
 
   const [showCelebration] = useState(false);
   const [scenarioResult, setScenarioResult] = useState<{ answered: boolean; correct: boolean | null }>({ answered: false, correct: null });
@@ -50,15 +51,14 @@ export default function TechniqueDetailPage() {
 
   const technique = useMemo(() => plan?.techniques.find(t => t.id === techniqueId), [plan, techniqueId]);
   const currentIndex = useMemo(() => plan?.techniques.findIndex(t => t.id === techniqueId) ?? -1, [plan, techniqueId]);
-  const nextTechnique = useMemo(() => (currentIndex !== -1 && currentIndex < (plan?.techniques.length ?? 0) - 1) ? plan?.techniques[currentIndex + 1] : null, [plan, currentIndex]);
+  
+  const nextTechnique = useMemo(() => {
+    if (currentIndex === -1 || !plan) return null;
+    return plan.techniques.slice(currentIndex + 1).find(t => getTechniqueStatus(plan.hobbyId, t.id) !== 'skipped');
+  }, [plan, currentIndex, getTechniqueStatus]);
 
   if (isLoading || !plan) return <LoadingSpinner message="Loading technique..." />;
   if (!technique) return <div className="flex items-center justify-center min-h-[60vh] text-rose-500 text-lg font-medium">Technique not found</div>;
-
-
-
-
-
 
   const handleScenarioAnswer = (index: number) => {
     const isCorrect = index === technique.scenarioChallenge?.correctIndex;
@@ -102,60 +102,14 @@ export default function TechniqueDetailPage() {
 
       <AnimatePresence initial={false}>
         {sidebarExpanded && (
-          <motion.aside
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 280, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-            className={cn(
-              "border-r border-black/5 flex flex-col shrink-0 bg-[#fff9ef] backdrop-blur-xl overflow-hidden h-full z-40",
-              "fixed lg:relative top-0 bottom-0 left-0 lg:left-auto shadow-2xl lg:shadow-none"
-            )}
-          >
-            <div className="w-[280px] h-full flex flex-col">
-              <div className="p-6 border-b border-black/5 mb-2">
-                <h2 className="text-xl font-bold text-slate-900 tracking-tight">{plan.hobby}</h2>
-              </div>
-              
-              <div className="p-6 py-2">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Lessons</h3>
-              </div>
-
-              <div className="flex-1 overflow-y-auto px-4 space-y-1 pb-10">
-                {plan.techniques.map((t) => {
-                  const tStatus = getTechniqueStatus(plan.hobbyId, t.id);
-                  const isActive = t.id === technique.id;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => {
-                      navigate(`/technique/${plan.hobbyId}/${t.id}`);
-                      if (window.innerWidth <= 1024) {
-                        setSidebarExpanded(false);
-                      }
-                    }}
-                      className={cn(
-                        'w-full text-left flex flex-col rounded-xl px-4 py-3 transition-all border-2',
-                        isActive 
-                          ? 'border-slate-900 bg-transparent shadow-none text-gray-900' 
-                          : 'border-transparent text-gray-500 hover:bg-black/5'
-                      )}
-                    >
-                      <span className={cn(
-                        'text-[15px] font-medium leading-snug',
-                        isActive ? 'font-semibold text-gray-900' : 'text-gray-600'
-                      )}>
-                        {t.title}
-                      </span>
-                      {tStatus === 'done' && !isActive && (
-                        <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-wider mt-1">Completed</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </motion.aside>
+          <LessonSidebar
+            plan={plan}
+            activeTechniqueId={technique.id}
+            getTechniqueStatus={getTechniqueStatus}
+            toggleTechnique={toggleTechnique}
+            skipTechnique={skipTechnique}
+            setSidebarExpanded={setSidebarExpanded}
+          />
         )}
       </AnimatePresence>
 
