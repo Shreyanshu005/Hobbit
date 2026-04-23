@@ -4,7 +4,6 @@ import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { usePlan } from '../../hooks/usePlan';
 import { useProgressStore } from '../../stores/useProgressStore';
 import { HobbyHeader } from '../../components/HobbyHeader';
-import { useStreak } from '../../hooks/useStreak';
 import type { Technique, Section } from '../../types';
 import { cn } from '../../utils/cn';
 import { CheckCircle2, Clock, Play, BookOpen } from 'lucide-react';

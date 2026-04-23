@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Folder, CalendarDays } from 'lucide-react';
+import { Folder, CalendarDays, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/atoms/Button';
 import { CreateCollectionModal } from '../../components/CreateCollectionModal';
@@ -10,6 +10,7 @@ import card1Svg from '../../assets/card1.svg';
 export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const collections = useCollectionStore(s => s.collections);
+  const deleteCollection = useCollectionStore(s => s.deleteCollection);
   const today = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
   return (
@@ -101,12 +102,28 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center justify-between mt-auto">
                 <span className="text-xs text-slate-400 font-medium">{col.hobbyIds.length} hobbies</span>
-                <Link
-                  to={`/collection/${col.id}`}
-                  className="px-6 py-2 rounded-full text-sm font-semibold text-indigo-700 border border-indigo-200 bg-white transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 shadow-sm"
-                >
-                  View
-                </Link>
+                <div className="flex items-center gap-2">
+                  {col.id !== 'general' && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (confirm(`Delete collection ${col.name}?`)) {
+                          deleteCollection(col.id);
+                        }
+                      }}
+                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                  <Link
+                    to={`/collection/${col.id}`}
+                    className="px-6 py-2 rounded-full text-sm font-semibold text-indigo-700 border border-indigo-200 bg-white transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 shadow-sm"
+                  >
+                    View
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

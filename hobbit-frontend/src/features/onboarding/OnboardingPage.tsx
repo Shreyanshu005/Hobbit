@@ -10,6 +10,7 @@ import * as validateService from '../../services/validateService';
 import { fetchHobbyFacts } from '../../services/hobbyService';
 import { cn } from '../../utils/cn';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
+import logoPng from '../../assets/logo.png';
 
 type Message = {
   role: 'user' | 'assistant' | 'system';
@@ -124,9 +125,11 @@ export default function OnboardingPage() {
     if (basicError) {
       setMessages(prev => [...prev, { role: 'user', content: input }]);
       setInput('');
+      setStatus('checking');
       setTimeout(() => {
+        setStatus('idle');
         setMessages(prev => [...prev, { role: 'assistant', content: basicError }]);
-      }, 400);
+      }, 2000);
       return;
     }
 
@@ -143,7 +146,6 @@ export default function OnboardingPage() {
         setMessages(prev => [...prev, { role: 'assistant', content: response.error }]);
         return;
       }
-      setStatus('valid');
       setHobby(extractedHobby);
 
       setTimeout(() => {
@@ -158,9 +160,8 @@ export default function OnboardingPage() {
             options: ['Beginner', 'Know basics', 'Intermediate', 'Advanced']
           }
         ]);
-      }, 500);
+      }, 2000);
     } catch (err) {
-      setStatus('valid');
       setHobby(extractedHobby);
       setTimeout(() => {
         setStatus('idle');
@@ -174,7 +175,7 @@ export default function OnboardingPage() {
             options: ['Beginner', 'Know basics', 'Intermediate', 'Advanced']
           }
         ]);
-      }, 500);
+      }, 2000);
     }
   };
 
@@ -197,7 +198,7 @@ export default function OnboardingPage() {
             options: ['Just for fun', 'Perform', 'Compete', 'Social']
           }
         ]);
-      }, 1500);
+      }, 2000);
     } else {
       const mappedGoal = option.toLowerCase().includes('fun') ? 'just-for-fun' :
         option.toLowerCase().includes('perform') ? 'perform' :
@@ -205,7 +206,7 @@ export default function OnboardingPage() {
       setTimeout(() => {
         setStatus('idle');
         generatePlan(mappedGoal);
-      }, 1500);
+      }, 2000);
     }
   };
 
@@ -234,58 +235,71 @@ export default function OnboardingPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] max-w-4xl mx-auto py-8">
-
-
       {isGenerating ? (
         <div className="flex-1 flex items-center justify-center animate-in fade-in zoom-in-95 duration-500">
           <LoadingSpinner size={200} message={currentFact} fullHeight={false} />
         </div>
       ) : (
-        <div ref={scrollRef} className="flex-1 overflow-y-auto w-full max-w-3xl mx-auto px-4 space-y-8 scroll-smooth pb-20">
-          {messages.map((msg, idx) => (
-            <div key={idx} className={cn(
-              "flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300",
-              msg.role === 'user' ? "items-end" : "items-start"
-            )}>
-              {msg.role === 'system' ? (
-                <p className="w-full text-center text-slate-400 font-medium text-base mb-4">{msg.content}</p>
-              ) : msg.role === 'user' ? (
-                <div className="text-slate-900 font-semibold max-w-[80%] text-2xl text-right">{msg.content}</div>
-              ) : (
-                <div className="space-y-4 max-w-[90%]">
-                  <div className="flex flex-col gap-3">
-                    {msg.content.split('\n').map((line, i) => {
-                      if (!line.trim()) return null;
-                      if (line.match(/^[-_*]{3,}$/)) return <hr key={i} className="my-2 border-black/10 w-full" />;
-                      return <p key={i} className="text-2xl font-semibold text-[#1d1627] leading-relaxed">{line.replace(/[*#]/g, '')}</p>;
-                    })}
-                  </div>
-                  {msg.type === 'options' && (
-                    <div className="flex flex-wrap gap-1.5 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
-                      {msg.options?.map((opt) => (
-                        <button
-                          key={opt}
-                          onClick={() => handleOptionSelect(opt, msg.field!)}
-                          className="px-5 py-2.5 rounded-2xl border-2 border-slate-200 text-slate-800 font-semibold text-base hover:border-slate-800 transition-all cursor-pointer"
-                        >
-                          {opt}
-                        </button>
-                      ))}
+        <>
+          <div className="w-full text-center text-slate-400 font-medium text-sm md:text-base pt-4 shrink-0">
+            To personalize your course, let's understand your requirements.
+          </div>
+          <div ref={scrollRef} className="flex-1 overflow-y-auto w-full max-w-3xl mx-auto px-4 space-y-8 scroll-smooth pb-20 pt-4 flex flex-col">
+            <div className="mt-auto space-y-8 shrink-0">
+              {messages.filter(m => m.role !== 'system').map((msg, idx) => (
+                <div key={idx} className={cn(
+                  "flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300",
+                  msg.role === 'user' ? "items-end" : "items-start"
+                )}>
+                  {msg.role === 'user' ? (
+                    <div className="text-slate-900 font-medium max-w-[85%] text-[15px] md:text-[17px] text-right bg-black/5 px-4 py-2 rounded-2xl rounded-tr-sm">
+                      {msg.content}
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 w-full">
+                      <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex flex-col items-center justify-center mt-1 -ml-2">
+                        <img src={logoPng} alt="AI Logo" className="w-full h-full object-contain" />
+                      </div>
+                      <div className="space-y-4 flex-1">
+                        <div className="flex flex-col gap-3">
+                          {msg.content.split('\n').map((line, i) => {
+                            if (!line.trim()) return null;
+                            if (line.match(/^[-_*]{3,}$/)) return <hr key={i} className="my-2 border-black/10 w-full" />;
+                            return (
+                              <p key={i} className="text-[15px] md:text-[17px] font-medium text-[#1d1627] leading-relaxed">
+                                {line.replace(/[*#]/g, '')}
+                              </p>
+                            );
+                          })}
+                        </div>
+                        {msg.type === 'options' && (
+                          <div className="flex flex-wrap gap-1.5 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
+                            {msg.options?.map((opt) => (
+                              <button
+                                key={opt}
+                                onClick={() => handleOptionSelect(opt, msg.field!)}
+                                className="px-5 py-2.5 rounded-2xl border-2 border-slate-200 text-slate-800 font-semibold text-sm md:text-base hover:border-slate-800 transition-all cursor-pointer"
+                              >
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
+              ))}
+              {status === 'checking' && (
+                <div className="flex items-center px-4 animate-in fade-in duration-300">
+                  <LoadingSpinner size={80} fullHeight={false} />
+                </div>
               )}
             </div>
-          ))}
-          {status === 'checking' && (
-            <div className="flex items-center gap-1.5 px-2 animate-in fade-in duration-300">
-              <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
-              <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
-              <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" />
-            </div>
-          )}
-        </div>
+          </div>
+        </>
       )}
+
       <div className="mt-auto px-4 pb-4 bg-[#fffbf4]">
         <div className="max-w-3xl mx-auto relative">
           <div className={cn(

@@ -24,7 +24,7 @@ export function CreateCollectionModal({ isOpen, onClose }: CreateCollectionModal
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-[#fffbf4] relative rounded-t-[32px] md:rounded-3xl shadow-2xl w-full max-w-md md:mx-4 animate-in slide-in-from-bottom-10 md:zoom-in-95 duration-300 md:mt-12 pb-6 md:pb-0">
                 <img
                     src={card1Svg}

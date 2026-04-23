@@ -16,7 +16,7 @@ export function LoadingSpinner({ size = 120, message, fullHeight = true }: Loadi
     });
 
     return (
-        <div className={`flex flex-col items-center justify-center gap-4 ${fullHeight ? 'min-h-[60vh]' : 'min-h-[200px]'}`}>
+        <div className={`flex flex-col items-center justify-center gap-4 ${fullHeight ? 'min-h-[60vh]' : ''}`}>
             {View}
             {message && (
                 <p className="text-base font-medium text-slate-400">{message}</p>
