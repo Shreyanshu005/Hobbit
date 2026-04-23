@@ -3,21 +3,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
-const app = (0, express_1.default)();
-const port = process.env.PORT || 5000;
-app.use((0, cors_1.default)());
-app.use(express_1.default.json());
-app.get('/', (req, res) => {
-    res.json({ message: 'Hobbit Server is running' });
-});
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK' });
-});
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+require("dotenv/config");
+const REQUIRED_ENV_VARS = ['GEMINI_API_KEY', 'FRONTEND_URL'];
+for (const key of REQUIRED_ENV_VARS) {
+    if (!process.env[key]) {
+        console.error(`[startup] Missing required environment variable: ${key}`);
+        process.exit(1);
+    }
+}
+const app_1 = __importDefault(require("./app"));
+const PORT = Number(process.env.PORT) || 3000;
+const app = (0, app_1.default)();
+app.listen(PORT, () => {
+    console.log(`[server] Running on port ${PORT} in ${process.env.NODE_ENV ?? 'development'} mode`);
 });
 //# sourceMappingURL=index.js.map

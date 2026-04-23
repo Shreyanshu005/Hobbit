@@ -68,13 +68,12 @@ async function getDiscoveredModel(apiKey: string): Promise<string> {
         const data = await response.json();
         const models = (data as any).models || [];
 
-        // Prioritize 1.5-flash specifically as it's the most stable/available for most users
-        // Avoid 2.0-flash if possible as it often has strictly limited free quota
+
         const v15Flash = models.find((m: any) => m.name.includes('gemini-1.5-flash'));
         const stableFlash = models.find((m: any) =>
             m.supportedGenerationMethods.includes('generateContent') &&
             m.name.includes('flash') &&
-            !m.name.includes('2.0') && // Avoid 2.0 specifically
+            !m.name.includes('2.0') && 
             !m.name.includes('2.5')
         );
 
@@ -102,7 +101,7 @@ const callGeminiWithRetry = async (prompt: string, maxAttempts = 3): Promise<str
         } catch (err: any) {
             lastError = err;
 
-            // Check for quota/429 errors immediately
+
             if (err.status === 429 || (err.message && err.message.includes('429')) || (err.message && err.message.includes('quota'))) {
                 console.error(`[ai] Quota exceeded for ${modelName}:`, err.message);
                 throw new Error('QUOTA_EXCEEDED');
