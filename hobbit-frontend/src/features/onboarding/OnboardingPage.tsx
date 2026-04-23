@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowUp } from 'lucide-react';
 import { useHobbyStore } from '../../stores/useHobbyStore';
 import { useCollectionStore } from '../../stores/useCollectionStore';
@@ -57,9 +57,11 @@ function extractHobby(raw: string): string {
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const { collectionId } = useParams<{ collectionId: string }>();
+  const [searchParams] = useSearchParams();
   const addHobby = useHobbyStore((state) => state.addHobby);
   const addHobbyToCollection = useCollectionStore((state) => state.addHobbyToCollection);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isFresh = searchParams.get('fresh') === '1';
   const [messages, setMessages] = useState<Message[]>([
     { role: 'system', content: "To personalize your course, let's understand your learning goal and background knowledge." },
     { role: 'assistant', content: "Hi! I am Hobbit. What hobby would you like to master today?" }
@@ -71,6 +73,53 @@ export default function OnboardingPage() {
   const [status, setStatus] = useState<'idle' | 'checking' | 'error' | 'valid'>('idle');
   const [loadingFacts, setLoadingFacts] = useState<string[]>([]);
   const [factIndex, setFactIndex] = useState(0);
+  const [shouldScrollOnNextMessage, setShouldScrollOnNextMessage] = useState(false);
+
+  // State persistence
+  useEffect(() => {
+    if (isFresh) {
+      // Clear persisted state and reset to initial state for fresh conversations
+      storage.remove(STORAGE_KEYS.ONBOARDING_STATE);
+      setMessages([
+        { role: 'system', content: "To personalize your course, let's understand your learning goal and background knowledge." },
+        { role: 'assistant', content: "Hi! I am Hobbit. What hobby would you like to master today?" }
+      ]);
+      setInput('');
+      setHobby('');
+      setLevel('');
+      setStatus('idle');
+      setLoadingFacts([]);
+      setFactIndex(0);
+    } else {
+      // Load persisted state for existing conversations
+      const persistedState = storage.get(STORAGE_KEYS.ONBOARDING_STATE);
+      if (persistedState) {
+        setMessages(persistedState.messages || messages);
+        setInput(persistedState.input || '');
+        setHobby(persistedState.hobby || '');
+        setLevel(persistedState.level || '');
+        setStatus(persistedState.status || 'idle');
+        setLoadingFacts(persistedState.loadingFacts || []);
+        setFactIndex(persistedState.factIndex || 0);
+      }
+    }
+  }, [isFresh]);
+
+  // Save state to localStorage whenever it changes (only for non-fresh conversations)
+  useEffect(() => {
+    if (!isFresh) {
+      const stateToPersist = {
+        messages,
+        input,
+        hobby,
+        level,
+        status,
+        loadingFacts,
+        factIndex
+      };
+      storage.set(STORAGE_KEYS.ONBOARDING_STATE, stateToPersist);
+    }
+  }, [messages, input, hobby, level, status, loadingFacts, factIndex, isFresh]);
 
   // Animated placeholder
   const [placeholderText, setPlaceholderText] = useState('');
@@ -115,15 +164,24 @@ export default function OnboardingPage() {
   }, [isGenerating, loadingFacts]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (shouldScrollOnNextMessage && scrollRef.current) {
+      const scrollElement = scrollRef.current;
+      scrollElement.scrollTop = scrollElement.scrollHeight;
+      setTimeout(() => {
+        scrollElement.scrollTo({
+          top: scrollElement.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 20);
+      setShouldScrollOnNextMessage(false);
     }
-  }, [messages, status, isGenerating]);
+  }, [messages, shouldScrollOnNextMessage]);
 
   const handleHobbySubmit = async () => {
     const basicError = validateHobby(input);
     if (basicError) {
       setMessages(prev => [...prev, { role: 'user', content: input }]);
+      setShouldScrollOnNextMessage(true);
       setInput('');
       setStatus('checking');
       setTimeout(() => {
@@ -137,6 +195,7 @@ export default function OnboardingPage() {
     const rawInput = input.trim();
     const extractedHobby = extractHobby(rawInput);
     setMessages(prev => [...prev, { role: 'user', content: rawInput }]);
+    setShouldScrollOnNextMessage(true);
     setInput('');
 
     try {
@@ -230,76 +289,83 @@ export default function OnboardingPage() {
   const currentFact = loadingFacts.length > 0 ? loadingFacts[factIndex] : `Crafting your personalized ${hobby} plan...`;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] max-w-4xl mx-auto py-8">
+    <div className="flex flex-col h-full md:h-[calc(100vh-100px)] max-w-4xl mx-auto py-8">
       {isGenerating ? (
-        <div className="flex-1 flex items-center justify-center animate-in fade-in zoom-in-95 duration-500">
+        <div className="flex-1 flex items-center justify-center animate-in fade-in zoom-in-95 duration-500 md:h-[500px]">
           <LoadingSpinner size={200} message={currentFact} fullHeight={false} />
         </div>
       ) : (
         <>
-          <div className="w-full text-center text-slate-400 font-medium text-sm md:text-base pt-4 shrink-0">
-            To personalize your course, let's understand your requirements.
-          </div>
-          <div ref={scrollRef} className="flex-1 overflow-y-auto w-full max-w-3xl mx-auto px-4 space-y-8 scroll-smooth pb-20 pt-4 flex flex-col">
-            <div className="mt-auto space-y-8 shrink-0">
-              {messages.filter(m => m.role !== 'system').map((msg, idx) => (
-                <div key={idx} className={cn(
-                  "flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300",
-                  msg.role === 'user' ? "items-end" : "items-start"
-                )}>
-                  {msg.role === 'user' ? (
-                    <div className="text-slate-900 font-medium max-w-[85%] text-[15px] md:text-[17px] text-right bg-black/5 px-4 py-2 rounded-2xl rounded-tr-sm">
-                      {msg.content}
-                    </div>
-                  ) : (
-                    <div className="flex items-start gap-2 w-full">
-                      <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex flex-col items-center justify-center mt-1 -ml-2">
-                        <img src={logoPng} alt="AI Logo" className="w-full h-full object-contain" />
+          {messages.filter(m => m.role !== 'system').length <= 1 && (
+            <div className="w-full text-center text-slate-400 font-medium text-sm md:text-base pt-4 shrink-0">
+              To personalize your course, let's understand your requirements.
+            </div>
+          )}
+          <div className="flex-1 flex items-center justify-center md:items-end md:justify-center mt-10 md:mt-0">
+            <div ref={scrollRef} className="w-full max-w-3xl mx-auto px-4 space-y-8 scroll-smooth pb-24 pt-6 flex flex-col h-full max-h-[calc(100vh-18rem)] overflow-y-auto md:h-[500px] md:overflow-y-auto md:flex-none rounded-[32px]">
+              <div className="space-y-8 shrink-0">
+                {messages.filter(m => m.role !== 'system').map((msg, idx) => (
+                  <div key={idx} className={cn(
+                    "flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300",
+                    msg.role === 'user' ? "items-end" : "items-start"
+                  )}>
+                    {msg.role === 'user' ? (
+                      <div className="text-slate-900 font-medium max-w-[85%] text-[15px] md:text-[17px] text-right bg-black/5 px-4 py-2 rounded-2xl rounded-tr-sm">
+                        {msg.content}
                       </div>
-                      <div className="space-y-4 flex-1">
-                        <div className="flex flex-col gap-3">
-                          {msg.content.split('\n').map((line, i) => {
-                            if (!line.trim()) return null;
-                            if (line.match(/^[-_*]{3,}$/)) return <hr key={i} className="my-2 border-black/10 w-full" />;
-                            return (
-                              <p key={i} className="text-[15px] md:text-[17px] font-medium text-[#1d1627] leading-relaxed">
-                                {line.replace(/[*#]/g, '')}
-                              </p>
-                            );
-                          })}
+                    ) : (
+                      <div className="flex items-start gap-2 w-full">
+                        <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex flex-col items-center justify-center mt-1 -ml-2">
+                          <img src={logoPng} alt="AI Logo" className="w-full h-full object-contain" />
                         </div>
-                        {msg.type === 'options' && (
-                          <div className="flex flex-wrap gap-1.5 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
-                            {msg.options?.map((opt) => (
-                              <button
-                                key={opt}
-                                onClick={() => handleOptionSelect(opt, msg.field!)}
-                                className="px-5 py-2.5 rounded-2xl border-2 border-slate-200 text-slate-800 font-semibold text-sm md:text-base hover:border-slate-800 transition-all cursor-pointer"
-                              >
-                                {opt}
-                              </button>
-                            ))}
+                        <div className="space-y-4 flex-1">
+                          <div className="flex flex-col gap-3">
+                            {msg.content.split('\n').map((line, i) => {
+                              if (!line.trim()) return null;
+                              if (line.match(/^[-_*]{3,}$/)) return <hr key={i} className="my-2 border-black/10 w-full" />;
+                              return (
+                                <p key={i} className="text-[15px] md:text-[17px] font-medium text-[#1d1627] leading-relaxed">
+                                  {line.replace(/[*#]/g, '')}
+                                </p>
+                              );
+                            })}
                           </div>
-                        )}
+                          {msg.type === 'options' && (
+                            <div className="flex flex-wrap gap-1.5 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
+                              {msg.options?.map((opt) => (
+                                <button
+                                  key={opt}
+                                  onClick={() => handleOptionSelect(opt, msg.field!)}
+                                  className="px-5 py-2.5 rounded-2xl border-2 border-slate-200 text-slate-800 font-semibold text-sm md:text-base hover:border-slate-800 transition-all cursor-pointer"
+                                >
+                                  {opt}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-              {status === 'checking' && (
-                <div className="flex items-center px-4 animate-in fade-in duration-300">
-                  <LoadingSpinner size={80} fullHeight={false} />
-                </div>
-              )}
+                    )}
+                  </div>
+                ))}
+                {status === 'checking' && (
+                  <div className="flex items-center px-4 animate-in fade-in duration-300">
+                    <LoadingSpinner size={80} fullHeight={false} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </>
       )}
 
-      <div className="mt-auto px-4 pb-4 bg-[#fffbf4]">
+      <div className={cn(
+        "fixed bottom-25 left-4 right-4 z-10 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:px-4 md:pb-4 md:bg-[#fffbf4] md:mt-2",
+        isFresh ? "md:mt-2" : "md:mt-2"
+      )}>
         <div className="max-w-3xl mx-auto relative">
           <div className={cn(
-            "bg-white border rounded-2xl shadow-sm transition-all overflow-hidden flex items-center pr-3 min-h-[60px]",
+            "bg-white border rounded-lg shadow-sm transition-all overflow-hidden flex items-center pr-3 min-h-[60px]",
             status === 'error' ? "border-red-400" : "border-black/15 focus-within:border-black/30"
           )}>
             <input
@@ -313,7 +379,7 @@ export default function OnboardingPage() {
               }}
               onKeyDown={(e) => e.key === 'Enter' && handleHobbySubmit()}
               placeholder={placeholderText}
-              className="flex-1 bg-transparent py-4 px-6 text-xl font-medium text-slate-900 focus:outline-none placeholder:text-slate-500 disabled:opacity-50"
+              className="flex-1 bg-transparent py-4 px-6 text-base md:text-xl font-medium text-slate-900 focus:outline-none placeholder:text-slate-500 disabled:opacity-50"
             />
             <button
               onClick={handleHobbySubmit}

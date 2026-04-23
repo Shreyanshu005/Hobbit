@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Home, Compass, Plus, ChevronLeft, MessageSquare, Trash2, User, Settings, Menu, X } from 'lucide-react';
+import { CalendarDays, Home, Compass, Plus, ChevronLeft, MessageSquare, Trash2, User, Settings, Menu, X } from 'lucide-react';
 import { useHobbyStore } from '../stores/useHobbyStore';
 import { cn } from '../utils/cn';
 import logoPng from '../assets/logo.png';
@@ -35,6 +35,15 @@ export function RootLayout() {
   const isFresh = searchParams.get('fresh') === '1';
   const showSidebar = isChatPage && !isFresh;
 
+  // Open mobile sidebar for collection pages
+  useEffect(() => {
+    const isMobile = window.innerWidth < 1024;
+    const isCollectionPage = !!location.pathname.match(/^\/collection\/(.+)$/);
+    if (isMobile && isCollectionPage && !mobileChatMenuOpen) {
+      setMobileChatMenuOpen(true);
+    }
+  }, [location.pathname, mobileChatMenuOpen]);
+
   const leftNavItems = [
     { name: 'Home', href: '/dashboard', icon: Home },
     { name: 'Explore', href: '/onboarding', icon: Compass },
@@ -54,10 +63,10 @@ export function RootLayout() {
       )}>
         <aside className="hidden lg:block border-r border-black/5 bg-[#fff9ef] backdrop-blur-xl sticky top-0 h-screen w-[80px]">
           <div className="h-full flex flex-col items-center py-5">
-            <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center mb-6">
+            <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center mb-3">
               <img src={logoPng} alt="Hobbit" className="w-20 h-20 object-contain" />
             </div>
-            <nav className="flex flex-col gap-2 mt-1">
+            <nav className="flex flex-col gap-1">
               {leftNavItems.map((item) => {
                 const Icon = item.icon;
                 const currentPath = location.pathname + (location.search || '');
@@ -67,7 +76,7 @@ export function RootLayout() {
                     key={item.name}
                     to={item.href}
                     className={cn(
-                      'flex flex-col items-center gap-1.5 group transition-colors',
+                      'flex flex-col items-center gap-1 group transition-colors',
                       isActive ? 'text-slate-900 font-bold' : 'text-slate-500'
                     )}
                     onClick={() => {
@@ -207,7 +216,7 @@ export function RootLayout() {
 
         <div className="min-w-0 flex-1 flex flex-col h-[100dvh] lg:h-screen">
           {isChatPage && !isFresh && (
-            <header className="lg:hidden flex items-center p-4 shrink-0 transition-all">
+            <header className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center p-4 bg-[#fffbf4] border-b border-black/5 transition-all">
               <button
                 onClick={() => setMobileChatMenuOpen(true)}
                 className="p-1 -ml-1 text-slate-800 transition-colors"
@@ -218,7 +227,7 @@ export function RootLayout() {
           )}
           <main className={cn(
             "flex-1 overflow-y-auto",
-            isChatPage ? "" : "px-4 pb-28 lg:px-8 lg:pb-12"
+            isChatPage ? (isFresh ? "pt-4 lg:pt-0" : "pt-16 lg:pt-0 max-h-[calc(100vh-4rem)]") : "px-4 pb-28 lg:px-8 lg:pb-12"
           )}>
             <Outlet />
           </main>
@@ -226,7 +235,7 @@ export function RootLayout() {
 
         <aside className="hidden lg:block border-l border-black/5 bg-[#fff9ef] backdrop-blur-xl sticky top-0 h-screen w-[80px]">
           <div className="h-full flex flex-col items-center py-5">
-            <nav className="flex flex-col gap-3">
+            <nav className="flex flex-col gap-1">
               {rightNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.href;
@@ -250,7 +259,7 @@ export function RootLayout() {
           </div>
         </aside>
 
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-3 py-3 border-t border-black/10 bg-[#fff9ef]">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-3 py-3 bg-[#fff9ef]">
           <div className="flex items-center justify-evenly">
             {leftNavItems.map((item) => {
               const Icon = item.icon;
@@ -266,7 +275,7 @@ export function RootLayout() {
                     }
                   }}
                   className={cn(
-                    'flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-2xl transition-colors',
+                    'flex flex-col items-center justify-center gap-1 px-3 py-2 transition-colors',
                     isActive ? 'text-slate-900 font-bold' : 'text-slate-600'
                   )}
                 >
@@ -277,7 +286,7 @@ export function RootLayout() {
             })}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-2xl text-slate-600 transition-colors"
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 text-slate-600 transition-colors"
             >
               <Menu className="w-5 h-5" strokeWidth={1.5} />
               <span className="text-sm font-medium leading-none">Menu</span>

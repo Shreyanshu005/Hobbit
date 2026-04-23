@@ -26,5 +26,6 @@ export const storage = {
 export const STORAGE_KEYS = {
   HOBBIES: 'hobbit_hobbies',
   PROGRESS: 'hobbit_progress',
-  SETTINGS: 'hobbit_settings'
+  SETTINGS: 'hobbit_settings',
+  ONBOARDING_STATE: 'hobbit_onboarding_state'
 } as const;

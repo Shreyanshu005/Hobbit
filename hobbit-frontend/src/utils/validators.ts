@@ -7,7 +7,7 @@ export const validateHobby = (input: string): string | null => {
   const trimmed = input.trim().toLowerCase()
 
   if (trimmed.length < 3) {
-    return 'Please enter a hobby name with at least 3 characters'
+    return 'Please enter a skill name with at least 3 characters'
   }
 
   if (trimmed.length > 50) {
