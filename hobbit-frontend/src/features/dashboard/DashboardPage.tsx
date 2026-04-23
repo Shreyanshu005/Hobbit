@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Folder, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '../../components/atoms/Button';
+import { HobbyButton } from '../../components/atoms/HobbyButton';
 import { CreateCollectionModal } from '../../components/CreateCollectionModal';
 import { useCollectionStore } from '../../stores/useCollectionStore';
 import learningSvg from '../../assets/learning.svg';
@@ -42,13 +42,11 @@ export default function DashboardPage() {
     </h1>
 
     <Link to="/onboarding?fresh=1">
-      <Button
-        className="rounded-full px-4 py-2 font-bold"
-        size="lg"
-        style={{ backgroundColor: '#f6af40', color: '#1f2937' }}
+      <button
+        className="rounded-full px-6 py-2 font-bold text-lg bg-[#f6af40] text-gray-900 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-100"
       >
         Try Now
-      </Button>
+      </button>
     </Link>
   </div>
 
@@ -93,13 +91,14 @@ export default function DashboardPage() {
                 Create custom collections to organize your hobbies, learning plans, and progress.
               </div>
               <div className="mt-auto flex justify-end">
-                <button
+                <HobbyButton
                   type="button"
+                  variant="outline"
                   onClick={() => setShowModal(true)}
-                  className="px-6 py-2 rounded-full text-sm font-semibold text-indigo-700 border border-indigo-200 bg-white transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 shadow-sm"
+                  className="rounded-full px-6 py-2 text-sm"
                 >
                   Create New Collection
-                </button>
+                </HobbyButton>
               </div>
             </div>
           </div>
@@ -137,9 +136,14 @@ export default function DashboardPage() {
                   )}
                   <Link
                     to={`/collection/${col.id}`}
-                    className="px-6 py-2 rounded-full text-sm font-semibold text-indigo-700 border border-indigo-200 bg-white transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 shadow-sm"
+                    className="inline-block"
                   >
-                    View
+                    <HobbyButton
+                      variant="outline"
+                      className="rounded-full px-6 py-2 text-sm"
+                    >
+                      View
+                    </HobbyButton>
                   </Link>
                 </div>
               </div>

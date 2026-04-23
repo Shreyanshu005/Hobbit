@@ -6,6 +6,7 @@ import { cn } from '../utils/cn';
 import logoPng from '../assets/logo.png';
 
 import { useCollectionStore } from '../stores/useCollectionStore';
+import { HobbyButton } from './atoms/HobbyButton';
 
 export function RootLayout() {
   const location = useLocation();
@@ -36,7 +37,7 @@ export function RootLayout() {
   const isFresh = searchParams.get('fresh') === '1';
   const showSidebar = isChatPage && !isFresh;
 
-  // Open mobile sidebar for collection page
+
   useEffect(() => {
     const isMobile = window.innerWidth < 1024;
     const isCollectionPage = !!location.pathname.match(/^\/collection\/(.+)$/);
@@ -113,11 +114,11 @@ export function RootLayout() {
               "fixed lg:sticky lg:top-0 top-0 left-0 transition-transform duration-300 ease-in-out",
               mobileChatMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
             )}>
-              <div className="h-full flex flex-col p-6">
-                <div className="flex items-center justify-between mb-8">
+              <div className="h-full flex flex-col py-6">
+                <div className="flex items-center justify-between mb-8 px-6">
                   <button
                     onClick={() => navigate('/dashboard')}
-                    className="flex items-center gap-2 text-slate-900 font-bold hover:opacity-70 transition-opacity"
+                    className="flex items-center gap-1 text-slate-900 font-bold hover:opacity-70 transition-opacity"
                   >
                     <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
                     <span className="text-[17px] font-bold tracking-tight truncate max-w-[150px]">{title}</span>
@@ -134,21 +135,26 @@ export function RootLayout() {
                     </button>
                   )}
                 </div>
-                <button
-                  onClick={() => {
-                    setMobileChatMenuOpen(false);
-                    navigate('/onboarding?fresh=1');
-                  }}
-                  className={cn(
-                    "w-full text-white rounded-full py-3 flex items-center justify-center gap-2 transition-colors shadow-lg shadow-black/10 mb-8",
-                    isChatPage && isFresh ? "bg-indigo-600 hover:bg-indigo-700" : "bg-[#110d19] hover:bg-[#110d19]/90"
-                  )}
-                >
-                  <Plus className="w-4 h-4" />
-                  <span className="text-base font-bold">New Conversation</span>
-                </button>
+                <div className="pt-6 border-t border-black/5 mb-8">
+                  <div className="px-6">
+                    <HobbyButton
+                      onClick={() => {
+                        setMobileChatMenuOpen(false);
+                        navigate('/onboarding?fresh=1');
+                      }}
+                      className={cn(
+                        "w-full rounded-full py-3 flex items-center justify-center gap-2",
+                        isChatPage && isFresh ? "border-indigo-500 text-indigo-600" : ""
+                      )}
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span className="text-base font-bold">New Conversation</span>
+                    </HobbyButton>
+                  </div>
+                  <div className="mt-6 pt-6 border-t border-black/5" />
+                </div>
 
-                <div className="flex-1 overflow-y-auto space-y-2 pb-20">
+                <div className="flex-1 overflow-y-auto space-y-2 pb-20 px-6">
                   {filteredHobbies.length > 0 ? (
                     filteredHobbies.map((h) => (
                       <div key={h.hobbyId} className="group relative">
@@ -156,7 +162,7 @@ export function RootLayout() {
                           to={`/plan/${h.hobbyId}`}
                           onClick={() => setMobileChatMenuOpen(false)}
                           className={cn(
-                            "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+                            "flex items-center gap-1.5 px-4 py-3 rounded-xl transition-all",
                             location.pathname.includes(h.hobbyId) ? "bg-indigo-600/10 text-indigo-700" : "hover:bg-black/5 text-slate-600"
                           )}
                         >
@@ -246,7 +252,7 @@ export function RootLayout() {
                     key={item.name}
                     to={item.href}
                     className={cn(
-                      'flex flex-col items-center gap-2 group transition-colors',
+                      'flex flex-col items-center gap-0.5 group transition-colors',
                       isActive ? 'text-slate-900 font-bold' : 'text-slate-600'
                     )}
                   >
@@ -298,7 +304,7 @@ export function RootLayout() {
         </nav>
 
 
-        {/* Mobile Right Sidebar Overlay */}
+
         <div
           className={cn(
             "fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm transition-opacity lg:hidden",

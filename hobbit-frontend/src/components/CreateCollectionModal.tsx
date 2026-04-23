@@ -55,7 +55,7 @@ export function CreateCollectionModal({ isOpen, onClose }: CreateCollectionModal
                                 type="text"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Collection description *"
+                                placeholder="Collection description"
                                 className="w-full bg-transparent border-b-2 border-slate-200 focus:border-[#6d58e0] outline-none py-3 text-base text-slate-700 placeholder:text-slate-400 transition-colors"
                             />
                         </div>

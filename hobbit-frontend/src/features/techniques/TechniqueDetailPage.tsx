@@ -1,31 +1,39 @@
-import { useState, useEffect, Suspense, lazy, useMemo } from 'react';
+import { useState, useEffect, Suspense, lazy, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   ChevronLeft, 
   CheckCircle2, 
-  AlertCircle, 
-  Dumbbell, 
   Trophy, 
   Layout, 
-  ExternalLink
+  ExternalLink,
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlan } from '../../hooks/usePlan';
 import { useProgressStore } from '../../stores/useProgressStore';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { cn } from '../../utils/cn';
+import { HobbyButton } from '../../components/atoms/HobbyButton';
 
 const Confetti = lazy(() => import('../../components/Confetti'));
 
 export default function TechniqueDetailPage() {
   const { hobbyId, techniqueId } = useParams<{ hobbyId: string; techniqueId: string }>();
   const navigate = useNavigate();
+  const mainScrollRef = useRef<HTMLElement>(null);
   const { plan, isLoading } = usePlan(hobbyId);
   const { getTechniqueStatus } = useProgressStore();
 
   const [showCelebration] = useState(false);
   const [scenarioResult, setScenarioResult] = useState<{ answered: boolean; correct: boolean | null }>({ answered: false, correct: null });
   const [sidebarExpanded, setSidebarExpanded] = useState(window.innerWidth > 1024);
+
+  useEffect(() => {
+    if (mainScrollRef.current) {
+      mainScrollRef.current.scrollTo(0, 0);
+    }
+    setScenarioResult({ answered: false, correct: null });
+  }, [techniqueId]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -41,9 +49,8 @@ export default function TechniqueDetailPage() {
   }, []);
 
   const technique = useMemo(() => plan?.techniques.find(t => t.id === techniqueId), [plan, techniqueId]);
-  
-
-
+  const currentIndex = useMemo(() => plan?.techniques.findIndex(t => t.id === techniqueId) ?? -1, [plan, techniqueId]);
+  const nextTechnique = useMemo(() => (currentIndex !== -1 && currentIndex < (plan?.techniques.length ?? 0) - 1) ? plan?.techniques[currentIndex + 1] : null, [plan, currentIndex]);
 
   if (isLoading || !plan) return <LoadingSpinner message="Loading technique..." />;
   if (!technique) return <div className="flex items-center justify-center min-h-[60vh] text-rose-500 text-lg font-medium">Technique not found</div>;
@@ -174,7 +181,10 @@ export default function TechniqueDetailPage() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-transparent relative w-full">
+        <main 
+          ref={mainScrollRef}
+          className="flex-1 overflow-y-auto bg-transparent relative w-full scroll-smooth"
+        >
           <div className="max-w-4xl mx-auto px-6 md:px-10 py-12 md:py-20 pb-40">
             <div className="mb-16">
               <div className="relative inline-block mb-6">
@@ -209,9 +219,9 @@ export default function TechniqueDetailPage() {
             </div>
 
             <div className="flex flex-col gap-8">
-              <section className="bg-transparent rounded-2xl p-8 border border-black/5">
+              <section className="bg-transparent rounded-sm p-8 border border-slate-200 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.03)]">
                 <div className="flex items-center gap-3 text-slate-900 mb-6">
-                  <Dumbbell size={20} strokeWidth={2.5} />
+
                   <span className="text-sm font-bold uppercase tracking-wider">Practice Session</span>
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900 mb-4">Action Step</h3>
@@ -220,9 +230,9 @@ export default function TechniqueDetailPage() {
                 </p>
               </section>
 
-              <section className="bg-transparent rounded-2xl p-8 border border-black/5">
+              <section className="bg-transparent rounded-sm p-8 border border-slate-200 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.03)]">
                 <div className="flex items-center gap-3 text-slate-900 mb-6">
-                  <AlertCircle size={20} strokeWidth={2.5} />
+
                   <span className="text-sm font-bold uppercase tracking-wider">Common Mistakes</span>
                 </div>
                 <div className="space-y-4">
@@ -309,6 +319,32 @@ export default function TechniqueDetailPage() {
                 </div>
               </section>
             )}
+
+            <div className="mt-32 pt-10 border-t border-black/5 flex justify-end">
+              {nextTechnique ? (
+                <HobbyButton
+                  onClick={() => {
+                    navigate(`/technique/${plan.hobbyId}/${nextTechnique.id}`);
+                  }}
+                  className="px-4 py-2 text-lg rounded-full"
+                >
+                  <span>Next Lesson</span>
+                  <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                </HobbyButton>
+              ) : (
+                <Link
+                  to="/dashboard"
+                  className="inline-block"
+                >
+                  <HobbyButton 
+                    className="rounded-full border-slate-200 bg-transparent shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)] active:shadow-none px-6 py-2 text-lg text-slate-900"
+                  >
+                    <span>Finish</span>
+                    <Trophy size={20} className="text-emerald-500" />
+                  </HobbyButton>
+                </Link>
+              )}
+            </div>
           </div>
 
           <div className="h-20" />

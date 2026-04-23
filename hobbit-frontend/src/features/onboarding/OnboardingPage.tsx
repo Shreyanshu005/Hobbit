@@ -10,6 +10,8 @@ import * as validateService from '../../services/validateService';
 import { fetchHobbyFacts } from '../../services/hobbyService';
 import { cn } from '../../utils/cn';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
+import { HobbyButton } from '../../components/atoms/HobbyButton';
+import { TypewriterText } from '../../components/TypewriterText';
 import logoPng from '../../assets/logo.png';
 
 type Message = {
@@ -29,7 +31,7 @@ const PLACEHOLDER_PROMPTS = [
   'Teach me Origami...',
 ];
 
-/** Strip common prefixes to extract the actual hobby name */
+
 function extractHobby(raw: string): string {
   const prefixes = [
     /^i\s+want\s+to\s+learn\s+/i,
@@ -82,10 +84,9 @@ export default function OnboardingPage() {
     return distanceFromBottom < 120;
   };
 
-  // State persistence
+
   useEffect(() => {
     if (isFresh) {
-      // Clear persisted state and reset to initial state for fresh conversations
       storage.remove(STORAGE_KEYS.ONBOARDING_STATE);
       setMessages([
         { role: 'system', content: "To personalize your course, let's understand your learning goal and background knowledge." },
@@ -98,7 +99,6 @@ export default function OnboardingPage() {
       setLoadingFacts([]);
       setFactIndex(0);
     } else {
-      // Load persisted state for existing conversations
       const persistedState: any = storage.get(STORAGE_KEYS.ONBOARDING_STATE);
       if (persistedState) {
         setMessages(persistedState.messages || messages);
@@ -112,7 +112,6 @@ export default function OnboardingPage() {
     }
   }, [isFresh]);
 
-  // Save state to localStorage whenever it changes (only for non-fresh conversations)
   useEffect(() => {
     if (!isFresh) {
       const stateToPersist = {
@@ -128,7 +127,7 @@ export default function OnboardingPage() {
     }
   }, [messages, input, hobby, level, status, loadingFacts, factIndex, isFresh]);
 
-  // Animated placeholder
+
   const [placeholderText, setPlaceholderText] = useState('');
   const [promptIdx, setPromptIdx] = useState(0);
   const [charIdx, setCharIdx] = useState(0);
@@ -158,7 +157,7 @@ export default function OnboardingPage() {
     return () => clearTimeout(timer);
   }, [charIdx, isDeleting, promptIdx]);
 
-  // Cycle loading facts
+
   useEffect(() => {
     if (isGenerating && loadingFacts.length > 0) {
       const interval = setInterval(() => {
@@ -272,7 +271,6 @@ export default function OnboardingPage() {
 
   const generatePlan = async (finalGoal: string) => {
     setIsGenerating(true);
-    // Fetch fun facts from Groq while plan generates
     fetchHobbyFacts(hobby).then(facts => setLoadingFacts(facts));
     try {
       const plan = await planService.getPlan(hobby, level as any, finalGoal as any);
@@ -294,9 +292,12 @@ export default function OnboardingPage() {
   const currentFact = loadingFacts.length > 0 ? loadingFacts[factIndex] : `Crafting your personalized ${hobby} plan...`;
 
   return (
-    <div className="flex flex-col h-full md:h-[calc(100vh-100px)] max-w-4xl mx-auto py-8">
+    <div className={cn(
+      "flex flex-col max-w-4xl mx-auto py-8",
+      isGenerating ? "h-[calc(100vh-10rem)] md:h-[calc(100vh-100px)]" : "h-full md:h-[calc(100vh-100px)]"
+    )}>
       {isGenerating ? (
-        <div className="flex-1 flex items-center justify-center animate-in fade-in zoom-in-95 duration-500 md:h-[500px]">
+        <div className="flex-1 flex items-center justify-center animate-in fade-in zoom-in-95 duration-500">
           <LoadingSpinner size={200} message={currentFact} fullHeight={false} />
         </div>
       ) : (
@@ -325,15 +326,22 @@ export default function OnboardingPage() {
                         </div>
                         <div className="space-y-4 flex-1">
                           <div className="flex flex-col gap-3">
-                            {msg.content.split('\n').map((line, i) => {
-                              if (!line.trim()) return null;
-                              if (line.match(/^[-_*]{3,}$/)) return <hr key={i} className="my-2 border-black/10 w-full" />;
-                              return (
-                                <p key={i} className="text-lg md:text-xl font-medium text-[#1d1627] leading-relaxed">
-                                  {line.replace(/[*#]/g, '')}
-                                </p>
-                              );
-                            })}
+                            {idx === messages.filter(m => m.role !== 'system').length - 1 ? (
+                              <TypewriterText 
+                                text={msg.content} 
+                                onComplete={() => setShouldScrollOnNextMessage(isNearBottom())}
+                              />
+                            ) : (
+                              msg.content.split('\n').map((line, i) => {
+                                if (!line.trim()) return null;
+                                if (line.match(/^[-_*]{3,}$/)) return <hr key={i} className="my-2 border-black/10 w-full" />;
+                                return (
+                                  <p key={i} className="text-lg md:text-xl font-medium text-[#1d1627] leading-relaxed">
+                                    {line.replace(/[*#]/g, '')}
+                                  </p>
+                                );
+                              })
+                            )}
                           </div>
                           {msg.type === 'options' && (
                             <div className="flex flex-wrap gap-1.5 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
@@ -368,10 +376,10 @@ export default function OnboardingPage() {
         "fixed bottom-25 left-4 right-4 z-10 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:px-4 md:pb-4 md:bg-[#fffbf4] md:mt-2",
         isFresh ? "md:mt-2" : "md:mt-2"
       )}>
-        <div className="max-w-3xl mx-auto relative">
+        <div className="max-w-3xl mx-auto flex items-end gap-3">
           <div className={cn(
-            "bg-white border rounded-lg shadow-sm transition-all overflow-hidden flex items-center pr-3 min-h-[60px]",
-            status === 'error' ? "border-red-400" : "border-black/15 focus-within:border-black/30"
+            "flex-1 bg-transparent border rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] transition-all overflow-hidden flex items-center min-h-[60px]",
+            status === 'error' ? "border-red-400" : "border-slate-200 focus-within:border-slate-400"
           )}>
             <input
               autoFocus
@@ -386,14 +394,14 @@ export default function OnboardingPage() {
               placeholder={placeholderText}
               className="flex-1 bg-transparent py-4 px-6 text-base md:text-xl font-medium text-slate-900 focus:outline-none placeholder:text-slate-500 disabled:opacity-50"
             />
-            <button
-              onClick={handleHobbySubmit}
-              disabled={input.length < 2 || isGenerating || status === 'checking'}
-              className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-white hover:bg-slate-900 transition-all disabled:opacity-50"
-            >
-              <ArrowUp size={22} strokeWidth={2.5} />
-            </button>
           </div>
+          <HobbyButton
+            onClick={handleHobbySubmit}
+            disabled={input.length < 2 || isGenerating || status === 'checking'}
+            className="w-[60px] h-[60px] p-0 rounded-2xl shrink-0"
+          >
+            <ArrowUp size={24} strokeWidth={2.5} />
+          </HobbyButton>
         </div>
       </div>
     </div>
