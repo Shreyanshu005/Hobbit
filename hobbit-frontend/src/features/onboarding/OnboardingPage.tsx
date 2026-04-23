@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowUp } from 'lucide-react';
 import { useHobbyStore } from '../../stores/useHobbyStore';
 import { useCollectionStore } from '../../stores/useCollectionStore';
 import { planService } from '../../services/planService';
@@ -10,10 +9,6 @@ import * as validateService from '../../services/validateService';
 import { fetchHobbyFacts } from '../../services/hobbyService';
 import { cn } from '../../utils/cn';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { HobbyButton } from '../../components/atoms/HobbyButton';
-import { TypewriterText } from '../../components/TypewriterText';
-import logoPng from '../../assets/logo.png';
-
 import { ChatMessages } from './components/ChatMessages';
 import { ChatInput } from './components/ChatInput';
 

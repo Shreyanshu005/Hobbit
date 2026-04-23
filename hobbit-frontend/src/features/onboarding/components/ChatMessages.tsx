@@ -1,4 +1,4 @@
-import { RefObject } from 'react';
+import type { RefObject } from 'react';
 import { cn } from '../../../utils/cn';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
 import { TypewriterText } from '../../../components/TypewriterText';
@@ -15,7 +15,7 @@ type Message = {
 interface ChatMessagesProps {
   messages: Message[];
   status: 'idle' | 'checking' | 'error' | 'valid';
-  scrollRef: RefObject<HTMLDivElement>;
+  scrollRef: RefObject<HTMLDivElement | null>;
   onOptionSelect: (option: string, field: 'level' | 'goal') => void;
   onScrollComplete: () => void;
 }

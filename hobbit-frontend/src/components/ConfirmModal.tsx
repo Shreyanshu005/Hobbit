@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, AlertTriangle } from 'lucide-react';
+import { X } from 'lucide-react';
 import { HobbyButton } from './atoms/HobbyButton';
 
 interface ConfirmModalProps {
@@ -9,7 +9,6 @@ interface ConfirmModalProps {
   title: string;
   message: string;
   confirmLabel?: string;
-  variant?: 'danger' | 'warning';
 }
 
 export function ConfirmModal({
@@ -18,8 +17,7 @@ export function ConfirmModal({
   onConfirm,
   title,
   message,
-  confirmLabel = 'Delete',
-  variant = 'danger'
+  confirmLabel = 'Delete'
 }: ConfirmModalProps) {
   return (
     <AnimatePresence>

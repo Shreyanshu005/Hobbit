@@ -7,7 +7,6 @@ import { useCollectionStore } from '../../stores/useCollectionStore';
 import learningSvg from '../../assets/learning.svg';
 import card1Svg from '../../assets/card1.svg';
 import logoPng from '../../assets/logo.png';
-import { ConfirmModal } from '../../components/ConfirmModal';
 
 export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
