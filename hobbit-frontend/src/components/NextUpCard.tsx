@@ -1,6 +1,5 @@
-import { Play } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import type { Technique } from '../types';
-import { cn } from '../utils/cn';
 
 interface NextUpCardProps {
   technique: Technique;
@@ -9,24 +8,38 @@ interface NextUpCardProps {
 
 export function NextUpCard({ technique, onClick }: NextUpCardProps) {
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-8 group">
-      {/* Decorative gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 opacity-50" />
-      <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-indigo-500/20 blur-3xl rounded-full" />
-      
+    <div className="relative overflow-hidden rounded-2xl bg-[#f1effc] p-8 md:p-10 group">
+      {/* Decorative circles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute right-[-40px] bottom-[-40px]">
+          <svg width="280" height="200" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse
+              cx="200"
+              cy="160"
+              rx="160"
+              ry="130"
+              fill="#E2DEF9"
+              className="transition-transform transform scale-0 group-hover:scale-100 duration-500 origin-bottom-right"
+            />
+          </svg>
+        </div>
+      </div>
+
       <div className="relative z-10">
-        <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em] mb-4 block">Next Up</span>
-        <h3 className="text-3xl font-black mb-2 leading-tight max-w-[80%]">{technique.title}</h3>
-        <p className="text-slate-400 text-base font-medium mb-8 max-w-[70%] italic">
-          "{technique.whyItMatters}"
+        <span className="text-sm font-semibold text-[#6d58e0] mb-4 block">Next Up</span>
+        <h3 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-3 leading-tight max-w-[85%]">
+          {technique.title}
+        </h3>
+        <p className="text-lg text-slate-500 font-medium mb-8 max-w-[75%] leading-relaxed">
+          {technique.whyItMatters}
         </p>
-        
+
         <button
           onClick={onClick}
-          className="flex items-center gap-3 bg-white text-slate-900 px-6 py-3 rounded-full font-bold text-lg hover:bg-indigo-50 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-white/10"
+          className="flex items-center gap-3 bg-[#110d19] text-white px-6 py-3 rounded-full font-semibold text-base hover:bg-[#110d19]/90 transition-all active:scale-95 shadow-lg shadow-black/10"
         >
-          <Play size={20} fill="currentColor" />
           Start Learning
+          <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
     </div>

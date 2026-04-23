@@ -1,11 +1,11 @@
-import { 
-  createBrowserRouter, 
-  RouterProvider, 
+import {
+  createBrowserRouter,
+  RouterProvider,
   Navigate
 } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { RootLayout } from './components/RootLayout';
-import { useHobbyStore } from './stores/useHobbyStore';
+import { LoadingSpinner } from './components/LoadingSpinner';
 import type { ReactNode } from 'react';
 
 const OnboardingPage = lazy(() => import('./features/onboarding/OnboardingPage'));
@@ -13,12 +13,10 @@ const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const PlanDetailPage = lazy(() => import('./features/techniques/PlanDetailPage'));
 const TechniqueDetailPage = lazy(() => import('./features/techniques/TechniqueDetailPage'));
 const CompletionPage = lazy(() => import('./features/completion/CompletionPage'));
+const ProfilePage = lazy(() => import('./features/profile/ProfilePage'));
+const SettingsPage = lazy(() => import('./features/settings/SettingsPage'));
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const hobbies = useHobbyStore((state) => state.hobbies);
-  if (hobbies.length === 0) {
-    return <Navigate to="/onboarding" replace />;
-  }
   return <>{children}</>;
 };
 
@@ -34,7 +32,7 @@ const router = createBrowserRouter([
       {
         path: 'onboarding',
         element: (
-          <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-slate-500">Loading...</div>}>
+          <Suspense fallback={<LoadingSpinner />}>
             <OnboardingPage />
           </Suspense>
         ),
@@ -43,7 +41,7 @@ const router = createBrowserRouter([
         path: 'dashboard',
         element: (
           <ProtectedRoute>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-slate-500">Loading Dashboard...</div>}>
+            <Suspense fallback={<LoadingSpinner />}>
               <DashboardPage />
             </Suspense>
           </ProtectedRoute>
@@ -53,7 +51,7 @@ const router = createBrowserRouter([
         path: 'plan/:hobbyId',
         element: (
           <ProtectedRoute>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-slate-500">Loading Plan...</div>}>
+            <Suspense fallback={<LoadingSpinner message="Loading your path..." />}>
               <PlanDetailPage />
             </Suspense>
           </ProtectedRoute>
@@ -63,7 +61,7 @@ const router = createBrowserRouter([
         path: 'technique/:hobbyId/:techniqueId',
         element: (
           <ProtectedRoute>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-slate-500">Loading Technique...</div>}>
+            <Suspense fallback={<LoadingSpinner message="Loading technique..." />}>
               <TechniqueDetailPage />
             </Suspense>
           </ProtectedRoute>
@@ -73,7 +71,7 @@ const router = createBrowserRouter([
         path: 'completion/:hobbyId',
         element: (
           <ProtectedRoute>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-slate-500">Loading...</div>}>
+            <Suspense fallback={<LoadingSpinner />}>
               <CompletionPage />
             </Suspense>
           </ProtectedRoute>
@@ -81,7 +79,27 @@ const router = createBrowserRouter([
       },
       {
         path: 'settings',
-        element: <div className="flex items-center justify-center min-h-[60vh] text-slate-500">Settings coming soon...</div>,
+        element: (
+          <Suspense fallback={<div className="h-full flex items-center justify-center min-h-[60vh]"><LoadingSpinner size={200} fullHeight={false} /></div>}>
+            <SettingsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'profile',
+        element: (
+          <Suspense fallback={<div className="h-full flex items-center justify-center min-h-[60vh]"><LoadingSpinner size={200} fullHeight={false} /></div>}>
+            <ProfilePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'collection/:collectionId',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <OnboardingPage />
+          </Suspense>
+        ),
       },
     ],
   },

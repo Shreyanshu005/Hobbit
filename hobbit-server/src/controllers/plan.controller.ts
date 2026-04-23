@@ -14,6 +14,10 @@ export const createPlan = async (
         sendSuccess(res, plan, 201)
     } catch (error) {
         if (error instanceof Error) {
+            if (error.message === 'QUOTA_EXCEEDED') {
+                sendError(res, 'The AI model is currently at its usage limit. Please try again in a few minutes or try a different hobby.', 429)
+                return
+            }
             if (error.message.includes('malformed JSON') || error.message.includes('schema validation')) {
                 sendError(res, 'AI returned an invalid response. Please try again.', 502)
                 return

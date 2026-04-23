@@ -5,7 +5,7 @@ interface ProgressRingProps {
   strokeWidth?: number;
 }
 
-export function ProgressRing({ current, total, size = 120, strokeWidth = 8 }: ProgressRingProps) {
+export function ProgressRing({ current, total, size = 130, strokeWidth = 10 }: ProgressRingProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const percentage = total > 0 ? (current / total) * 100 : 0;
@@ -37,8 +37,8 @@ export function ProgressRing({ current, total, size = 120, strokeWidth = 8 }: Pr
         />
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-2xl font-black text-slate-900">{current}/{total}</span>
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Done</span>
+        <span className="text-3xl font-semibold text-slate-900">{current}/{total}</span>
+        <span className="text-sm font-medium text-slate-400">completed</span>
       </div>
     </div>
   );

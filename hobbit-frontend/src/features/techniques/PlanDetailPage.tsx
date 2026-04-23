@@ -1,99 +1,152 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { HobbyHeader } from '../../components/HobbyHeader';
-import { ProgressRing } from '../../components/ProgressRing';
-import { NextUpCard } from '../../components/NextUpCard';
-import { TechniqueCard } from '../../components/TechniqueCard';
+import { motion } from 'framer-motion';
+import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { usePlan } from '../../hooks/usePlan';
-import { useStreak } from '../../hooks/useStreak';
 import { useProgressStore } from '../../stores/useProgressStore';
-import type { Technique } from '../../types';
+import { HobbyHeader } from '../../components/HobbyHeader';
+import { useStreak } from '../../hooks/useStreak';
+import type { Technique, Section } from '../../types';
+import { cn } from '../../utils/cn';
+import { CheckCircle2, Clock, Play, BookOpen } from 'lucide-react';
+
+const SECTION_META: Record<Section, { label: string; number: number }> = {
+  foundation: { label: 'Fundamentals', number: 1 },
+  building: { label: 'Building Skills', number: 2 },
+  advanced: { label: 'Advanced Techniques', number: 3 },
+};
+
+const SECTION_ORDER: Section[] = ['foundation', 'building', 'advanced'];
+
+function TechniqueRow({ technique, status, onClick, isLast }: {
+  technique: Technique;
+  status: string;
+  onClick: () => void;
+  isLast: boolean;
+}) {
+  const isDone = status === 'done';
+  const isInProgress = status === 'in-progress';
+  const isPending = status === 'pending';
+
+  return (
+    <button onClick={onClick} className="flex items-start gap-5 group w-full text-left py-2">
+      {/* Timeline connector */}
+      <div className="flex flex-col items-center pt-1">
+        <div className={cn(
+          "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all border-2",
+          isDone && "bg-emerald-500 border-emerald-500 text-white",
+          isInProgress && "bg-[#6d58e0] border-[#6d58e0] text-white",
+          isPending && "bg-white border-slate-200 text-slate-400 group-hover:border-[#6d58e0] group-hover:text-[#6d58e0]"
+        )}>
+          {isDone ? <CheckCircle2 size={18} /> :
+            isInProgress ? <Play size={16} fill="white" /> :
+              <Clock size={16} />}
+        </div>
+        {!isLast && (
+          <div className={cn(
+            "w-[2px] flex-1 min-h-[32px]",
+            isDone ? "bg-emerald-300" : "bg-slate-200"
+          )} />
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="pb-6 flex-1 min-w-0">
+        <h4 className={cn(
+          "text-lg font-semibold leading-snug transition-colors",
+          isDone && "text-emerald-800",
+          isInProgress && "text-[#6d58e0]",
+          isPending && "text-slate-800 group-hover:text-[#6d58e0]"
+        )}>
+          {technique.title}
+        </h4>
+        <p className={cn(
+          "text-sm mt-0.5 font-medium",
+          isDone ? "text-emerald-600/70" : "text-slate-400"
+        )}>
+          {isDone ? 'Completed' :
+            isInProgress ? 'In Progress' :
+              `${technique.difficulty} · ${technique.estimatedMinutes} min`}
+        </p>
+      </div>
+    </button>
+  );
+}
 
 export default function PlanDetailPage() {
   const { hobbyId } = useParams<{ hobbyId: string }>();
   const navigate = useNavigate();
   const { plan, isLoading, error } = usePlan(hobbyId);
-  const { streak, flameLevel } = useStreak(hobbyId || '');
   const { getHobbyProgress, getTechniqueStatus } = useProgressStore();
 
-  if (isLoading) return <div className="flex items-center justify-center min-h-[60vh] text-slate-400 font-bold">Loading your path...</div>;
-  if (error || !plan) return <div className="flex items-center justify-center min-h-[60vh] text-rose-500 font-bold">{error || 'Plan not found'}</div>;
+  if (isLoading) return <LoadingSpinner message="Loading your path..." />;
+  if (error || !plan) return <div className="flex items-center justify-center min-h-[60vh] text-rose-500 text-lg font-medium">{error || 'Plan not found'}</div>;
 
   const progress = getHobbyProgress(plan.hobbyId);
   const completedCount = progress?.completedTechniqueIds.length || 0;
-  const nextUp = plan.techniques.find(t => getTechniqueStatus(plan.hobbyId, t.id) === 'pending');
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
+  // Group techniques by section
+  const sections = SECTION_ORDER.map(section => ({
+    section,
+    ...SECTION_META[section],
+    techniques: plan.techniques.filter(t => t.section === section),
+  })).filter(s => s.techniques.length > 0);
 
   return (
-    <div className="max-w-4xl mx-auto pt-6 pb-20">
-      <HobbyHeader 
-        name={plan.hobby} 
-        streak={streak} 
-        flameLevel={flameLevel} 
-      />
+    <div className="max-w-3xl mx-auto pt-8 pb-20">
+      <HobbyHeader name={plan.hobby} />
 
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-12 items-center mb-16">
-        <div>
-          <p className="text-xl text-slate-500 font-bold mb-2 uppercase tracking-widest">Your Mastery</p>
-          <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
-            You've completed <span className="text-indigo-600">{completedCount}</span> of <span className="text-slate-400">{plan.techniques.length}</span> techniques
-          </h2>
-        </div>
-        <ProgressRing current={completedCount} total={plan.techniques.length} />
+      {/* Top nav tabs */}
+      <div className="flex items-center gap-6 mb-10 border-b border-black/5 pb-4">
+        <button className="flex items-center gap-2 text-base font-semibold text-[#6d58e0] border-b-2 border-[#6d58e0] pb-1">
+          <BookOpen size={16} /> Learning Map
+        </button>
+        <span className="text-sm text-slate-400 font-medium">
+          {completedCount}/{plan.techniques.length} completed · {plan.estimatedTotalHours}h total
+        </span>
       </div>
 
-      <AnimatePresence mode="wait">
-        {nextUp && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="mb-16"
-          >
-            <NextUpCard 
-              technique={nextUp} 
-              onClick={() => navigate(`/technique/${plan.hobbyId}/${nextUp.id}`)} 
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Sections */}
+      <div className="space-y-8">
+        {sections.map((sec, secIdx) => {
+          const sectionDone = sec.techniques.filter(t => getTechniqueStatus(plan.hobbyId, t.id) === 'done').length;
+          return (
+            <motion.div
+              key={sec.section}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: secIdx * 0.1 }}
+            >
+              {/* Section header card */}
+              <div className="bg-[#faf9f6] border border-black/5 rounded-2xl px-6 py-4 mb-6 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {sec.number}. {sec.label}
+                  </h3>
+                  <p className="text-sm text-slate-400 font-medium mt-0.5">
+                    {sectionDone}/{sec.techniques.length} lessons
+                  </p>
+                </div>
+                <div className="w-9 h-9 rounded-lg border border-black/5 bg-white flex items-center justify-center">
+                  <BookOpen size={16} className="text-slate-400" />
+                </div>
+              </div>
 
-      <section>
-        <h3 className="text-2xl font-black text-slate-900 mb-8 uppercase tracking-widest border-b-4 border-slate-200 pb-4">
-          The Full Stack
-        </h3>
-        
-        <motion.div 
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="space-y-4"
-        >
-          {plan.techniques.map((technique: Technique) => (
-            <motion.div key={technique.id} variants={item}>
-              <TechniqueCard 
-                technique={technique}
-                status={getTechniqueStatus(plan.hobbyId, technique.id)}
-                onClick={() => navigate(`/technique/${plan.hobbyId}/${technique.id}`)}
-              />
+              {/* Technique timeline */}
+              <div className="pl-4 md:pl-10">
+                {sec.techniques.map((technique: Technique, idx: number) => (
+                  <TechniqueRow
+                    key={technique.id}
+                    technique={technique}
+                    status={getTechniqueStatus(plan.hobbyId, technique.id)}
+                    onClick={() => navigate(`/technique/${plan.hobbyId}/${technique.id}`)}
+                    isLast={idx === sec.techniques.length - 1}
+                  />
+                ))}
+              </div>
             </motion.div>
-          ))}
-        </motion.div>
-      </section>
+          );
+        })}
+      </div>
     </div>
   );
 }

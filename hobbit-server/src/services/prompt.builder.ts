@@ -1,60 +1,112 @@
 import type { HobbyGoal, HobbyLevel } from '../types/plan.types'
 
 const LEVEL_CONTEXT: Record<HobbyLevel, string> = {
-    beginner: 'a complete beginner with no prior experience',
-    intermediate: 'someone with some experience who wants structured improvement',
-    casual: 'someone who wants to enjoy the hobby without intense commitment',
+  beginner: 'a complete beginner with zero prior experience',
+  intermediate: 'someone with some experience who wants structured improvement',
+  casual: 'someone who wants to enjoy the hobby without intense commitment',
 }
 
 const GOAL_CONTEXT: Record<HobbyGoal, string> = {
-    'just-for-fun': 'purely for personal enjoyment and relaxation',
-    perform: 'to eventually perform or demonstrate to others',
-    compete: 'to reach a competitive or advanced skill level',
-    social: 'to participate socially with others who share this hobby',
+  'just-for-fun': 'purely for personal enjoyment and relaxation',
+  perform: 'to eventually perform or demonstrate to others',
+  compete: 'to reach a competitive or advanced skill level',
+  social: 'to participate socially with others who share this hobby',
 }
 
 export const buildPlanPrompt = (
-    hobby: string,
-    level: HobbyLevel,
-    goal: HobbyGoal
-): string => {
-    return `You are an expert hobby learning coach. Create a focused, practical learning plan.
+  hobby: string,
+  level: HobbyLevel,
+  goal: HobbyGoal
+): string => `You are an expert hobby learning coach. Generate a focused, opinionated learning plan.
 
-Person details:
-- Hobby they want to learn: ${hobby}
-- Current level: ${LEVEL_CONTEXT[level]}
-- Their goal: ${GOAL_CONTEXT[goal]}
+PERSON:
+- Hobby: ${hobby}
+- Level: ${LEVEL_CONTEXT[level]}
+- Goal: ${GOAL_CONTEXT[goal]}
 
-CRITICAL RULES FOR RESOURCE TYPES:
-- Physical or performance hobbies (guitar, dance, sport, cooking, drawing, martial arts): prioritise video demonstrations. Reading points should only give context, never replace doing.
-- Strategic or analytical hobbies (chess, poker, coding, investing, board games): decision frameworks and conceptual reading are appropriate alongside videos.
-- Creative hobbies (painting, writing, photography, crafts): balance visual examples with conceptual understanding.
-- YouTube search query MUST be a single, highly specific string. Good: "open G chord finger placement close up beginner slow".
-- Structure the curriculum logically using prerequisiteId to link techniques.
+STEP 1 — CLASSIFY THE HOBBY:
+Determine which category fits best:
+- "physical": guitar, dance, sport, cooking, martial arts — muscle memory and doing matters most
+- "strategic": chess, poker, investing, board games — thinking frameworks and decisions matter
+- "creative": painting, writing, photography, crafts — expression and taste matter
+- "technical": coding, electronics, woodworking — building and problem solving matter
 
-RULES:
-- Generate exactly 5 to 8 techniques
-- Order them from most foundational to most advanced
-- Each technique id must be a unique kebab-case string
-- Return ONLY raw valid JSON — no markdown, no code fences, no explanation
+STEP 2 — GENERATE 5 TO 8 TECHNIQUES:
+Order from most foundational to most advanced.
+Group them into sections:
+- "foundation": first 2–3 techniques, absolute basics, zero assumptions
+- "building": middle techniques, core skill development
+- "advanced": last 1–2 techniques, refinement, expression, or mastery
 
-Required JSON shape:
+RULES PER CATEGORY:
+physical:
+  - readingPoints give context only — never replace doing
+  - practicePrompt must be a physical action ("pick up your guitar and do X for 10 minutes")
+  - commonMistakes must be physical errors ("pressing too far from the fret")
+  - omit scenarioChallenge entirely
+
+strategic:
+  - readingPoints can include frameworks and mental models
+  - practicePrompt is a thinking exercise ("study this position for 5 minutes, find the tactic")
+  - commonMistakes are thinking errors ("playing too fast without calculating")
+  - include scenarioChallenge with a realistic single decision scenario
+
+creative:
+  - readingPoints balance concept and visual awareness
+  - practicePrompt is a small creative exercise ("sketch 5 thumbnails in 10 minutes")
+  - commonMistakes are habit errors ("overworking a painting because it feels unfinished")
+  - omit scenarioChallenge
+
+technical:
+  - readingPoints explain concepts and mental models
+  - practicePrompt is a mini build ("build a function that does X")
+  - commonMistakes are process errors ("copying code without understanding it")
+  - omit scenarioChallenge
+
+YOUTUBE SEARCH QUERY RULES:
+- 2 queries per technique — one foundational, one deeper dive
+- Must be specific and findable — include "tutorial", "beginner", "how to", "lesson"
+- Bad: "guitar chords". Good: "how to play open G chord guitar beginner close up slow motion"
+
+IMPORTANT:
+- Return ONLY raw valid JSON
+- No markdown, no code fences, no explanation text
+- estimatedMinutes must be realistic (10–45 min range)
+- practicePrompt must start with an action verb and specify a time ("Spend X minutes...")
+- scenarioChallenge only for strategic hobbies — omit key entirely for others
+
+JSON SHAPE:
 {
+  "hobbyCategory": "physical",
+  "estimatedTotalHours": 14,
   "techniques": [
     {
       "id": "unique-kebab-case-id",
-      "title": "Short technique name",
-      "whyItMatters": "One clear sentence on why this is important for their specific goal",
+      "title": "Technique name",
+      "whyItMatters": "One sentence — why this is essential for their specific goal",
       "difficulty": "beginner",
-      "primaryYoutubeSearchQuery": "highly specific search string",
-      "prerequisiteId": "id-of-previous-technique-or-null",
+      "section": "foundation",
+      "estimatedMinutes": 20,
+      "youtubeSearchQueries": [
+        "specific foundational query",
+        "specific deeper dive query"
+      ],
       "readingPoints": [
-        "Concise concept point 1",
-        "Concise concept point 2"
-      ]
+        "Context point 1",
+        "Context point 2",
+        "Key thing to watch for"
+      ],
+      "practicePrompt": "Spend 10 minutes doing exactly this: [specific action]",
+      "commonMistakes": [
+        "Most common mistake beginners make",
+        "Second mistake to watch for"
+      ],
+      "scenarioChallenge": {
+        "prompt": "Scenario description — only present for strategic hobbies",
+        "options": ["Option A", "Option B", "Option C", "Option D"],
+        "correctIndex": 1,
+        "explanation": "Why this option is correct and the others are not"
+      }
     }
   ]
-}
-
-{`
-}
+}`

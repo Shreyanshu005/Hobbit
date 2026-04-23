@@ -15,7 +15,7 @@ export const validateHobby = (input: string): string | null => {
   }
 
   if (BLOCKED_INPUTS.includes(trimmed)) {
-    return 'Please enter a real hobby — like Guitar, Chess, or Cooking'
+    return "Hi! I can only help you master actual hobbies or skills (like Guitar, Chess, or Coding). Let's try something else!"
   }
 
   if (!/[a-zA-Z]/.test(trimmed)) {

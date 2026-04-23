@@ -19,13 +19,16 @@
 @theme {
   --font-sans: "Darker Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-title: "Montserrat", sans-serif;
-  --color-neutral-60: #6b7280; /* Standard gray-500/600 approx */
-  --text-title-medium: 1.5rem; /* Upgraded from 1.125rem */
+  --color-neutral-60: #6b7280;
+  /* Standard gray-500/600 approx */
+  --text-title-medium: 1.5rem;
+  /* Upgraded from 1.125rem */
 }
 
 body {
   font-family: "Darker Grotesque", ui-sans-serif, system-ui, sans-serif;
-  font-size: 1.75rem; /* Even larger premium size */
+  font-size: 2rem;
+  font-weight: 600;
   line-height: 1.1;
 }
 

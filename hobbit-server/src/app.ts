@@ -2,6 +2,7 @@ import cors from 'cors'
 import express, { type Application } from 'express'
 import morgan from 'morgan'
 import planRouter from './routes/plan.routes'
+import validateRouter from './routes/validate.routes'
 
 const createApp = (): Application => {
     const app = express()
@@ -26,6 +27,7 @@ const createApp = (): Application => {
     })
 
     app.use('/api/plan', planRouter)
+    app.use('/api/validate', validateRouter)
 
     app.use((_req, res) => {
         res.status(404).json({ success: false, error: 'Route not found' })

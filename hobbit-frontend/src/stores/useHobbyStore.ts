@@ -21,7 +21,11 @@ export const useHobbyStore = create<HobbyState>((set) => ({
 
   addHobby: (plan) => set((state) => {
     const exists = state.hobbies.some((h) => h.hobbyId === plan.hobbyId);
-    if (exists) return state;
+    if (exists) {
+      const updatedHobbies = state.hobbies.map(h => h.hobbyId === plan.hobbyId ? { ...h, ...plan } : h);
+      storage.set(STORAGE_KEYS.HOBBIES, updatedHobbies);
+      return { hobbies: updatedHobbies, activeHobby: { ...state.activeHobby, ...plan } as Plan };
+    }
     
     const newHobbies = [...state.hobbies, plan];
     storage.set(STORAGE_KEYS.HOBBIES, newHobbies);

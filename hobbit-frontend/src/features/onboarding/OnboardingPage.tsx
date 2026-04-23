@@ -1,11 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Globe, ArrowUp, Upload, Mic } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Globe, ArrowUp } from 'lucide-react';
 import { useHobbyStore } from '../../stores/useHobbyStore';
+import { useCollectionStore } from '../../stores/useCollectionStore';
 import { planService } from '../../services/planService';
 import { storage, STORAGE_KEYS } from '../../utils/storage';
 import { validateHobby } from '../../utils/validators';
+import * as validateService from '../../services/validateService';
+import { fetchHobbyFacts } from '../../services/hobbyService';
 import { cn } from '../../utils/cn';
+import { LoadingSpinner } from '../../components/LoadingSpinner';
 
 type Message = {
   role: 'user' | 'assistant' | 'system';
@@ -15,9 +19,45 @@ type Message = {
   field?: 'level' | 'goal';
 };
 
+const PLACEHOLDER_PROMPTS = [
+  'I want to learn Guitar...',
+  'Teach me Chess...',
+  'I want to master Cooking...',
+  'Help me with Photography...',
+  'I want to learn Dancing...',
+  'Teach me Origami...',
+];
+
+/** Strip common prefixes to extract the actual hobby name */
+function extractHobby(raw: string): string {
+  const prefixes = [
+    /^i\s+want\s+to\s+learn\s+/i,
+    /^i\s+want\s+to\s+master\s+/i,
+    /^i\s+want\s+to\s+try\s+/i,
+    /^i\s+want\s+to\s+do\s+/i,
+    /^i\s+want\s+to\s+start\s+/i,
+    /^teach\s+me\s+/i,
+    /^help\s+me\s+with\s+/i,
+    /^help\s+me\s+learn\s+/i,
+    /^i\s+like\s+/i,
+    /^i\s+love\s+/i,
+    /^let'?s\s+learn\s+/i,
+    /^let'?s\s+try\s+/i,
+  ];
+  let cleaned = raw.trim();
+  for (const prefix of prefixes) {
+    cleaned = cleaned.replace(prefix, '');
+  }
+  // Remove trailing punctuation
+  cleaned = cleaned.replace(/[.!?,;]+$/, '').trim();
+  return cleaned || raw.trim();
+}
+
 export default function OnboardingPage() {
   const navigate = useNavigate();
+  const { collectionId } = useParams<{ collectionId: string }>();
   const addHobby = useHobbyStore((state) => state.addHobby);
+  const addHobbyToCollection = useCollectionStore((state) => state.addHobbyToCollection);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([
     { role: 'system', content: "To personalize your course, let's understand your learning goal and background knowledge." },
@@ -27,175 +67,252 @@ export default function OnboardingPage() {
   const [hobby, setHobby] = useState('');
   const [level, setLevel] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isThinking, setIsThinking] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<'idle' | 'checking' | 'error' | 'valid'>('idle');
+  const [loadingFacts, setLoadingFacts] = useState<string[]>([]);
+  const [factIndex, setFactIndex] = useState(0);
+
+  // Animated placeholder
+  const [placeholderText, setPlaceholderText] = useState('');
+  const [promptIdx, setPromptIdx] = useState(0);
+  const [charIdx, setCharIdx] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const current = PLACEHOLDER_PROMPTS[promptIdx];
+    const speed = isDeleting ? 30 : 60;
+
+    const timer = setTimeout(() => {
+      if (!isDeleting) {
+        setPlaceholderText(current.slice(0, charIdx + 1));
+        setCharIdx(charIdx + 1);
+        if (charIdx + 1 === current.length) {
+          setTimeout(() => setIsDeleting(true), 1500);
+        }
+      } else {
+        setPlaceholderText(current.slice(0, charIdx - 1));
+        setCharIdx(charIdx - 1);
+        if (charIdx - 1 === 0) {
+          setIsDeleting(false);
+          setPromptIdx((promptIdx + 1) % PLACEHOLDER_PROMPTS.length);
+        }
+      }
+    }, speed);
+
+    return () => clearTimeout(timer);
+  }, [charIdx, isDeleting, promptIdx]);
+
+  // Cycle loading facts
+  useEffect(() => {
+    if (isGenerating && loadingFacts.length > 0) {
+      const interval = setInterval(() => {
+        setFactIndex((prev) => (prev + 1) % loadingFacts.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    } else {
+      setFactIndex(0);
+    }
+  }, [isGenerating, loadingFacts]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isThinking, isGenerating]);
+  }, [messages, status, isGenerating]);
 
-  const handleHobbySubmit = () => {
-    const validationError = validateHobby(input);
-    if (validationError) {
-      setError(validationError);
+  const handleHobbySubmit = async () => {
+    const basicError = validateHobby(input);
+    if (basicError) {
+      setMessages(prev => [...prev, { role: 'user', content: input }]);
+      setInput('');
+      setTimeout(() => {
+        setMessages(prev => [...prev, { role: 'assistant', content: basicError }]);
+      }, 400);
       return;
     }
-    setError(null);
-    const userHobby = input.trim();
-    setHobby(userHobby);
-    setMessages(prev => [...prev, { role: 'user', content: userHobby }]);
+
+    setStatus('checking');
+    const rawInput = input.trim();
+    const extractedHobby = extractHobby(rawInput);
+    setMessages(prev => [...prev, { role: 'user', content: rawInput }]);
     setInput('');
-    setIsThinking(true);
-    setTimeout(() => {
-      setIsThinking(false);
-      setMessages(prev => [
-        ...prev,
-        { 
-          role: 'assistant', 
-          content: `That's a great choice! What is your current experience level with ${userHobby}?`,
-          type: 'options',
-          field: 'level',
-          options: ['Complete beginner', 'Know a few basics', 'Intermediate', 'Advanced']
-        }
-      ]);
-    }, 2000);
+
+    try {
+      const response = await validateService.checkHobby(extractedHobby);
+      if (!response.success) {
+        setStatus('idle');
+        setMessages(prev => [...prev, { role: 'assistant', content: response.error }]);
+        return;
+      }
+      setStatus('valid');
+      setHobby(extractedHobby);
+
+      setTimeout(() => {
+        setStatus('idle');
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: `That's a great choice! What is your current experience level with ${extractedHobby}?`,
+            type: 'options',
+            field: 'level',
+            options: ['Beginner', 'Know basics', 'Intermediate', 'Advanced']
+          }
+        ]);
+      }, 500);
+    } catch (err) {
+      setStatus('valid');
+      setHobby(extractedHobby);
+      setTimeout(() => {
+        setStatus('idle');
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: `That's a great choice! What is your current experience level with ${extractedHobby}?`,
+            type: 'options',
+            field: 'level',
+            options: ['Beginner', 'Know basics', 'Intermediate', 'Advanced']
+          }
+        ]);
+      }, 500);
+    }
   };
 
   const handleOptionSelect = (option: string, field: 'level' | 'goal') => {
     setMessages(prev => [...prev, { role: 'user', content: option }]);
-    setIsThinking(true);
+    setStatus('checking');
     if (field === 'level') {
-      const mappedLevel = option.toLowerCase().includes('beginner') ? 'beginner' : 
-                          option.toLowerCase().includes('intermediate') ? 'intermediate' : 'casual';
+      const mappedLevel = option.toLowerCase().includes('beginner') ? 'beginner' :
+        option.toLowerCase().includes('intermediate') ? 'intermediate' : 'casual';
       setLevel(mappedLevel);
       setTimeout(() => {
-        setIsThinking(false);
+        setStatus('idle');
         setMessages(prev => [
           ...prev,
-          { 
-            role: 'assistant', 
+          {
+            role: 'assistant',
             content: `Perfect. And what's your primary goal for learning ${hobby}?`,
             type: 'options',
             field: 'goal',
-            options: ['Just for fun', 'Perform for others', 'Compete', 'Social/Meet people']
+            options: ['Just for fun', 'Perform', 'Compete', 'Social']
           }
         ]);
-      }, 2000);
+      }, 1500);
     } else {
       const mappedGoal = option.toLowerCase().includes('fun') ? 'just-for-fun' :
-                         option.toLowerCase().includes('perform') ? 'perform' :
-                         option.toLowerCase().includes('compete') ? 'compete' : 'social';
+        option.toLowerCase().includes('perform') ? 'perform' :
+          option.toLowerCase().includes('compete') ? 'compete' : 'social';
       setTimeout(() => {
-        setIsThinking(false);
+        setStatus('idle');
         generatePlan(mappedGoal);
-      }, 2000);
+      }, 1500);
     }
   };
 
   const generatePlan = async (finalGoal: string) => {
     setIsGenerating(true);
+    // Fetch fun facts from Groq while plan generates
+    fetchHobbyFacts(hobby).then(facts => setLoadingFacts(facts));
     try {
       const plan = await planService.getPlan(hobby, level as any, finalGoal as any);
-      addHobby(plan);
+      addHobby({ ...plan, chatHistory: messages });
+
+      if (collectionId && collectionId !== 'general') {
+        addHobbyToCollection(collectionId, plan.hobbyId);
+      }
+
       storage.remove(STORAGE_KEYS.SETTINGS);
       navigate(`/plan/${plan.hobbyId}`);
     } catch (err: any) {
       setIsGenerating(false);
-      setMessages(prev => [...prev, { role: 'assistant', content: "Something went wrong. Let's try again. What hobby are you interested in?" }]);
+      const errorMessage = err.message || "Something went wrong. Let's try again. What hobby are you interested in?";
+      setMessages(prev => [...prev, { role: 'assistant', content: errorMessage }]);
     }
   };
 
+  const currentFact = loadingFacts.length > 0 ? loadingFacts[factIndex] : `Crafting your personalized ${hobby} plan...`;
+
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] max-w-4xl mx-auto py-8">
-      <div className="w-full max-w-2xl mx-auto bg-[#eeebff] rounded-xl p-3 mb-8 flex items-center gap-3 shrink-0">
-        <div className="flex items-center gap-1.5 text-[#6d58e0] font-bold">
-          <Globe className="w-5 h-5" />
-          <span className="text-sm">Internet</span>
+
+
+      {isGenerating ? (
+        <div className="flex-1 flex items-center justify-center animate-in fade-in zoom-in-95 duration-500">
+          <LoadingSpinner size={200} message={currentFact} fullHeight={false} />
         </div>
-        <div className="h-4 w-[1px] bg-[#6d58e0]/20" />
-        <p className="text-sm font-semibold text-slate-500">
-          Tell Hobbit <span className="text-slate-900">what hobby you want to learn?</span>
-        </p>
-      </div>
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 space-y-8 scroll-smooth pb-20">
-        {messages.map((msg, idx) => (
-          <div key={idx} className={cn(
-            "flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300",
-            msg.role === 'user' ? "items-end" : "items-start"
-          )}>
-            {msg.role === 'system' ? (
-              <p className="w-full text-center text-slate-400 font-medium text-sm mb-4">{msg.content}</p>
-            ) : msg.role === 'user' ? (
-              <div className="bg-[#e0f2fe] text-slate-900 px-5 py-2.5 rounded-2xl font-medium shadow-sm max-w-[80%]">{msg.content}</div>
-            ) : (
-              <div className="space-y-4 max-w-[90%]">
-                <p className="text-[17px] font-semibold text-[#1d1627] leading-relaxed">{msg.content}</p>
-                {msg.type === 'options' && (
-                  <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
-                    {msg.options?.map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => handleOptionSelect(opt, msg.field!)}
-                        className="px-5 py-2 rounded-xl bg-white border border-black/10 text-slate-700 font-bold hover:border-indigo-600 hover:text-indigo-600 transition-all shadow-sm text-sm"
-                      >
-                        {opt}
-                      </button>
-                    ))}
+      ) : (
+        <div ref={scrollRef} className="flex-1 overflow-y-auto w-full max-w-3xl mx-auto px-4 space-y-8 scroll-smooth pb-20">
+          {messages.map((msg, idx) => (
+            <div key={idx} className={cn(
+              "flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300",
+              msg.role === 'user' ? "items-end" : "items-start"
+            )}>
+              {msg.role === 'system' ? (
+                <p className="w-full text-center text-slate-400 font-medium text-base mb-4">{msg.content}</p>
+              ) : msg.role === 'user' ? (
+                <div className="text-slate-900 font-semibold max-w-[80%] text-2xl text-right">{msg.content}</div>
+              ) : (
+                <div className="space-y-4 max-w-[90%]">
+                  <div className="flex flex-col gap-3">
+                    {msg.content.split('\n').map((line, i) => {
+                      if (!line.trim()) return null;
+                      if (line.match(/^[-_*]{3,}$/)) return <hr key={i} className="my-2 border-black/10 w-full" />;
+                      return <p key={i} className="text-2xl font-semibold text-[#1d1627] leading-relaxed">{line.replace(/[*#]/g, '')}</p>;
+                    })}
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-        {isThinking && (
-          <div className="flex items-center gap-1.5 px-2 animate-in fade-in duration-300">
-            <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
-            <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
-            <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" />
-          </div>
-        )}
-        {isGenerating && (
-          <div className="flex flex-col items-start space-y-4 animate-in fade-in duration-300">
-            <p className="text-[17px] font-semibold text-indigo-600 animate-pulse">Crafting your personalized {hobby} plan...</p>
-          </div>
-        )}
-      </div>
+                  {msg.type === 'options' && (
+                    <div className="flex flex-wrap gap-1.5 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
+                      {msg.options?.map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => handleOptionSelect(opt, msg.field!)}
+                          className="px-5 py-2.5 rounded-2xl border-2 border-slate-200 text-slate-800 font-semibold text-base hover:border-slate-800 transition-all cursor-pointer"
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+          {status === 'checking' && (
+            <div className="flex items-center gap-1.5 px-2 animate-in fade-in duration-300">
+              <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" />
+            </div>
+          )}
+        </div>
+      )}
       <div className="mt-auto px-4 pb-4 bg-[#fffbf4]">
-        <div className="max-w-2xl mx-auto relative">
+        <div className="max-w-3xl mx-auto relative">
           <div className={cn(
             "bg-white border rounded-2xl shadow-sm transition-all overflow-hidden flex items-center pr-3 min-h-[60px]",
-            error ? "border-red-400" : "border-black/15 focus-within:border-black/30"
+            status === 'error' ? "border-red-400" : "border-black/15 focus-within:border-black/30"
           )}>
-            <div className="flex items-center gap-1 px-3">
-              <button className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 transition-colors"><Upload size={20} /></button>
-            </div>
             <input
               autoFocus
               type="text"
               value={input}
-              disabled={isThinking || isGenerating}
+              disabled={status === 'checking' || isGenerating}
               onChange={(e) => {
                 setInput(e.target.value);
-                if (error) setError(null);
+                if (status === 'error') setStatus('idle');
               }}
               onKeyDown={(e) => e.key === 'Enter' && handleHobbySubmit()}
-              placeholder="Or type your own response here..."
-              className="flex-1 bg-transparent py-4 text-[17px] font-medium text-slate-900 focus:outline-none placeholder:text-slate-300 disabled:opacity-50"
+              placeholder={placeholderText}
+              className="flex-1 bg-transparent py-4 px-6 text-xl font-medium text-slate-900 focus:outline-none placeholder:text-slate-500 disabled:opacity-50"
             />
-            <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 transition-colors"><Mic size={20} /></button>
-              <button 
-                onClick={handleHobbySubmit}
-                disabled={input.length < 2 || isGenerating || isThinking}
-                className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all disabled:opacity-30"
-              >
-                <ArrowUp size={22} strokeWidth={2.5} />
-              </button>
-            </div>
+            <button
+              onClick={handleHobbySubmit}
+              disabled={input.length < 2 || isGenerating || status === 'checking'}
+              className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-white hover:bg-slate-900 transition-all disabled:opacity-50"
+            >
+              <ArrowUp size={22} strokeWidth={2.5} />
+            </button>
           </div>
-          {error && <p className="absolute left-4 -bottom-6 text-red-500 text-xs font-bold animate-in fade-in slide-in-from-top-1">{error}</p>}
         </div>
       </div>
     </div>
