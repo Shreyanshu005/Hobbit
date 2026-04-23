@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Home, Compass, Plus, ChevronLeft, MessageSquare, Trash2, User, Settings, Menu, X } from 'lucide-react';
+import { Home, Compass, Plus, ChevronLeft, MessageSquare, Trash2, User, Settings, Menu, X } from 'lucide-react';
 import { useHobbyStore } from '../stores/useHobbyStore';
 import { cn } from '../utils/cn';
 import logoPng from '../assets/logo.png';
@@ -188,7 +188,7 @@ export function RootLayout() {
 
                   {collectionId !== 'general' && (
                     <div className="mt-4 pt-4 border-t border-black/5">
-                      <button onClick={() => setShowPicker(!showPicker)} className="text-indigo-600 font-bold text-sm flex items-center gap-2 px-2 hover:opacity-70">
+                      <button onClick={() => setShowPicker(!showPicker)} className="text-black/40 font-bold text-sm flex items-center gap-2 px-2 hover:opacity-70">
                         <Plus className="w-4 h-4" /> Add existing hobby
                       </button>
                       {showPicker && (

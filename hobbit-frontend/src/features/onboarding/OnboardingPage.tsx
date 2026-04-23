@@ -92,7 +92,7 @@ export default function OnboardingPage() {
       setFactIndex(0);
     } else {
       // Load persisted state for existing conversations
-      const persistedState = storage.get(STORAGE_KEYS.ONBOARDING_STATE);
+      const persistedState: any = storage.get(STORAGE_KEYS.ONBOARDING_STATE);
       if (persistedState) {
         setMessages(persistedState.messages || messages);
         setInput(persistedState.input || '');
