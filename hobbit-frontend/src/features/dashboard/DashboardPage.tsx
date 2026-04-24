@@ -18,7 +18,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between md:justify-end mb-6">
         <img src={logoPng} alt="Hobbit" className="w-20 h-14 md:hidden" />
         <div
-          className="text-3xl tracking-tight text-slate-900"
+          className="text-3xl tracking-tight text-slate-900 pr-4 md:pr-0"
           style={{ fontFamily: "'Caveat', cursive" }}
         >
           Hobbit
