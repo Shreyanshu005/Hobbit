@@ -14,10 +14,10 @@ export default function DashboardPage() {
   const deleteCollection = useCollectionStore(s => s.deleteCollection);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-0 pt-6 md:pt-10 pb-28 md:pb-14">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 lg:px-12 pt-6 md:pt-10 pb-28 md:pb-14">
       <div className="flex items-center justify-between md:justify-end mb-6">
         <img src={logoPng} alt="Hobbit" className="w-20 h-14 md:hidden" />
-        <div 
+        <div
           className="text-3xl tracking-tight text-slate-900"
           style={{ fontFamily: "'Caveat', cursive" }}
         >
@@ -25,39 +25,39 @@ export default function DashboardPage() {
         </div>
       </div>
       <section className="bg-[#f1effc] rounded-[8px] overflow-hidden">
-       <div className="grid grid-cols-[3fr_2fr] md:grid-cols-[1fr_260px] gap-3 md:gap-6 p-8">
-  
-  <div>
-    <p className="text-lg md:text-xl font-semibold text-[#b0afb3] mb-4 md:mb-6">
-      A virtual assistant to
-    </p>
+        <div className="grid grid-cols-[3fr_2fr] md:grid-cols-[1fr_260px] gap-3 md:gap-6 p-8">
 
-    <h1
-      className="text-4xl md:text-5xl tracking-tight text-slate-900 mb-4 md:mb-10"
-      style={{ fontFamily: "'Caveat', cursive" }}
-    >
-      <span className="text-[#6d58e0]">Master your next</span>
-      <span className="block font-semibold">hobby.</span>
-    </h1>
+          <div>
+            <p className="text-lg md:text-xl font-semibold text-[#b0afb3] mb-4 md:mb-6">
+              A virtual assistant to
+            </p>
 
-    <Link to="/onboarding?fresh=1">
-      <button
-        className="rounded-full px-6 py-2 font-bold text-lg bg-[#f6af40] text-gray-900 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-100"
-      >
-        Try Now
-      </button>
-    </Link>
-  </div>
+            <h1
+              className="text-4xl md:text-5xl tracking-tight text-slate-900 mb-4 md:mb-10"
+              style={{ fontFamily: "'Caveat', cursive" }}
+            >
+              <span className="text-[#6d58e0]">Master your next</span>
+              <span className="block font-semibold">hobby.</span>
+            </h1>
 
-  <div className="flex items-center justify-center md:justify-end">
-    <img
-      src={learningSvg}
-      alt="Learning"
-      className="w-auto max-w-[160px] md:max-w-none h-auto"
-    />
-  </div>
+            <Link to="/onboarding?fresh=1">
+              <button
+                className="rounded-full px-6 py-2 font-bold text-lg bg-[#f6af40] text-gray-900 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-100"
+              >
+                Try Now
+              </button>
+            </Link>
+          </div>
 
-</div>
+          <div className="flex items-center justify-center md:justify-end">
+            <img
+              src={learningSvg}
+              alt="Learning"
+              className="w-auto max-w-[160px] md:max-w-none h-auto"
+            />
+          </div>
+
+        </div>
       </section>
 
       <section className="mt-16 md:mt-32">
@@ -66,7 +66,7 @@ export default function DashboardPage() {
           <div className="h-[2px] flex-1 bg-black/10 translate-y-[-4px]" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-10 md:mt-20 max-w-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mt-10 md:mt-20">
           <div
             className="group relative bg-white border border-black/5 transition-shadow rounded-2xl h-full flex flex-col p-6 min-h-[180px]"
           >
@@ -116,8 +116,8 @@ export default function DashboardPage() {
               <div className="text-lg text-[#1d1627] mb-5 max-w-[20rem] font-medium">
                 {col.description || 'Your custom collection'}
               </div>
-                <div className="flex items-center justify-between mt-auto">
-                  <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center justify-between mt-auto">
+                <div className="flex items-center gap-2 ml-auto">
                   {col.id !== 'general' && (
                     <button
                       type="button"

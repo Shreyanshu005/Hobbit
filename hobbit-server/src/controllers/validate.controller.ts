@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { validateIsHobby } from '../services/ai.service'
+import { validateIsHobby, correctHobbySpelling } from '../services/ai.service'
 import { sendError, sendSuccess } from '../utils/response'
 
 export const checkHobby = async (req: Request, res: Response): Promise<void> => {
@@ -19,9 +19,11 @@ export const checkHobby = async (req: Request, res: Response): Promise<void> => 
       return
     }
 
-    sendSuccess(res, { valid: true, hobby: hobby.trim() })
+    const correctedHobby = await correctHobbySpelling(hobby.trim())
+    sendSuccess(res, { valid: true, hobby: correctedHobby })
   } catch (error) {
     console.error('[validate] Error during AI validation:', error);
-    sendSuccess(res, { valid: true, hobby: hobby.trim() })
+    const correctedHobby = await correctHobbySpelling(hobby.trim())
+    sendSuccess(res, { valid: true, hobby: correctedHobby })
   }
 }

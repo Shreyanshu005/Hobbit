@@ -79,7 +79,6 @@ export function ChatInput({
           isListening && "border-indigo-400 ring-2 ring-indigo-100"
         )}>
           <input
-            autoFocus
             type="text"
             value={input}
             disabled={status === 'checking' || isGenerating}

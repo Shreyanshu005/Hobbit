@@ -60,7 +60,7 @@ export default function OnboardingPage() {
   const addHobbyToCollection = useCollectionStore((state) => state.addHobbyToCollection);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isFresh = searchParams.get('fresh') === '1';
-  
+
   const [messages, setMessages] = useState<Message[]>([
     { role: 'system', content: "To personalize your course, let's understand your learning goal and background knowledge." },
     { role: 'assistant', content: "Hi! I am Hobbit. What hobby would you like to master today?" }
@@ -208,7 +208,8 @@ export default function OnboardingPage() {
         setMessages(prev => [...prev, { role: 'assistant', content: response.error }]);
         return;
       }
-      setHobby(extractedHobby);
+      const correctedHobby = response.data?.hobby || extractedHobby;
+      setHobby(correctedHobby);
 
       setTimeout(() => {
         setStatus('idle');
@@ -216,7 +217,7 @@ export default function OnboardingPage() {
           ...prev,
           {
             role: 'assistant',
-            content: `That's a great choice! What is your current experience level with ${extractedHobby}?`,
+            content: `That's a great choice! What is your current experience level with ${correctedHobby}?`,
             type: 'options',
             field: 'level',
             options: ['Beginner', 'Know basics', 'Intermediate', 'Advanced']
@@ -293,7 +294,7 @@ export default function OnboardingPage() {
 
   return (
     <div className={cn(
-      "flex flex-col max-w-4xl mx-auto px-4 md:px-0 py-4 md:py-8 h-full"
+      "absolute left-0 right-0 bottom-[100px] lg:bottom-4 top-16 lg:top-0 flex flex-col w-full max-w-4xl mx-auto px-4 md:px-0 py-2 md:py-8 overflow-hidden"
     )}>
       {isGenerating ? (
         <div className="flex-1 flex items-center justify-center animate-in fade-in zoom-in-95 duration-500">
@@ -301,10 +302,10 @@ export default function OnboardingPage() {
         </div>
       ) : (
         <>
-          <div className="hidden md:block w-full text-center text-slate-400 font-medium text-lg md:text-xl pt-4 shrink-0">
+          <div className="hidden md:block w-full text-center text-slate-400 font-medium text-lg md:text-xl pt-3 pb-3 shrink-0">
             To personalize your course, let's understand your requirements.
           </div>
-          
+
           <ChatMessages
             messages={messages}
             status={status}

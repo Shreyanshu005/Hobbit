@@ -40,20 +40,18 @@ export function LessonSidebar({
         <div className="h-16 flex items-center px-6 border-b border-black/5">
           <h2 className="text-xl font-bold text-slate-900 tracking-tight capitalize">{plan.hobby}</h2>
         </div>
-        
+
         {imageLoaded && (
-          <div className="p-4">
-            <div className="aspect-square w-full rounded-2xl overflow-hidden border border-black/5 shadow-sm bg-white/50 flex items-center justify-center animate-in fade-in zoom-in-95 duration-700">
-              <img 
-                src={`https://image.pollinations.ai/prompt/${plan.hobby.toLowerCase().replace(/\s+/g, '_')}?width=400&height=400&nologo=true`} 
-                alt={plan.hobby}
-                className="w-full h-full object-cover"
-              />
-            </div>
+          <div className="w-full h-38 border-b border-black/5 bg-white/50 overflow-hidden flex items-center justify-center animate-in fade-in zoom-in-95 duration-700 shrink-0">
+            <img
+              src={`https://image.pollinations.ai/prompt/${plan.hobby.toLowerCase().replace(/\s+/g, '_')}?width=400&height=400&nologo=true`}
+              alt={plan.hobby}
+              className="w-full h-full object-cover"
+            />
           </div>
         )}
-        <img 
-          src={`https://image.pollinations.ai/prompt/${plan.hobby.toLowerCase().replace(/\s+/g, '_')}?width=400&height=400&nologo=true`} 
+        <img
+          src={`https://image.pollinations.ai/prompt/${plan.hobby.toLowerCase().replace(/\s+/g, '_')}?width=400&height=400&nologo=true`}
           alt=""
           onLoad={() => setImageLoaded(true)}
           onError={() => setImageLoaded(false)}
@@ -67,7 +65,7 @@ export function LessonSidebar({
           </span>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 space-y-1 pb-10">
+        <div className="flex-1 overflow-y-auto space-y-0 pb-10">
           {plan.techniques.map((t) => {
             const tStatus = getTechniqueStatus(plan.hobbyId, t.id);
             const isActive = t.id === activeTechniqueId;
@@ -75,10 +73,10 @@ export function LessonSidebar({
               <div
                 key={t.id}
                 className={cn(
-                  'w-full flex items-center gap-2 rounded-sm px-3 py-2 transition-all border group',
-                  isActive 
-                    ? 'border-slate-400 bg-transparent text-gray-900' 
-                    : 'border-transparent text-gray-500 hover:bg-black/5'
+                  'w-full flex items-center gap-3 px-6 py-4 transition-all group border-b border-black/5',
+                  isActive
+                    ? 'bg-black/10 text-gray-900'
+                    : 'text-gray-500 hover:bg-black/5'
                 )}
               >
                 <button
@@ -87,15 +85,15 @@ export function LessonSidebar({
                     toggleTechnique(plan.hobbyId, t.id);
                   }}
                   className={cn(
-                    "w-4 h-4 rounded-sm border flex items-center justify-center transition-all shrink-0",
+                    "w-4 h-4 rounded-sm flex items-center justify-center transition-all shrink-0",
                     tStatus === 'done'
-                      ? "bg-slate-400 border-slate-400 text-white"
-                      : "border-slate-200 bg-white"
+                      ? "bg-slate-400 text-white"
+                      : "border border-slate-200 bg-white"
                   )}
                 >
                   {tStatus === 'done' && <Check className="w-3 h-3 stroke-[3]" />}
                 </button>
-                
+
                 <button
                   onClick={() => {
                     navigate(`/technique/${plan.hobbyId}/${t.id}`);
@@ -106,7 +104,7 @@ export function LessonSidebar({
                   className="flex-1 text-left min-w-0"
                 >
                   <span className={cn(
-                    'text-sm font-medium leading-snug block truncate transition-all',
+                    'text-base font-medium leading-snug block truncate transition-all',
                     isActive ? 'font-semibold text-gray-900' : (tStatus === 'done' || tStatus === 'skipped' ? 'text-gray-400 line-through' : 'text-gray-600')
                   )}>
                     {t.title}

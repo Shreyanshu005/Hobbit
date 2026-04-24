@@ -64,17 +64,15 @@ export default function PlanDetailPage() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-[280px] border-r border-black/5 flex flex-col shrink-0 bg-[#fff9ef] backdrop-blur-xl">
+        <aside className="hidden lg:flex w-[280px] border-r border-black/5 flex-col shrink-0 bg-[#fff9ef] backdrop-blur-xl">
         
           {imageLoaded && (
-            <div className="p-4">
-              <div className="aspect-square w-full rounded-2xl overflow-hidden border border-black/5 shadow-sm bg-white/50 mb-4 flex items-center justify-center animate-in fade-in zoom-in-95 duration-700">
-                <img 
-                  src={`https://image.pollinations.ai/prompt/${plan.hobby.toLowerCase().replace(/\s+/g, '_')}?width=400&height=400&nologo=true`} 
-                  alt={plan.hobby}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+            <div className="w-full h-32 border-b border-black/5 bg-white/50 overflow-hidden flex items-center justify-center animate-in fade-in zoom-in-95 duration-700 shrink-0">
+              <img 
+                src={`https://image.pollinations.ai/prompt/${plan.hobby.toLowerCase().replace(/\s+/g, '_')}?width=400&height=400&nologo=true`} 
+                alt={plan.hobby}
+                className="w-full h-full object-cover"
+              />
             </div>
           )}
           <img 

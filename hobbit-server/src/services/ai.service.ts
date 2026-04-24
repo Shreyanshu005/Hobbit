@@ -210,3 +210,37 @@ export const getHobbyFacts = async (hobby: string): Promise<string[]> => {
         ];
     }
 }
+
+const spellingCache = new Map<string, string>()
+
+export const correctHobbySpelling = async (input: string): Promise<string> => {
+    const normalizedInput = input.trim().toLowerCase()
+    if (spellingCache.has(normalizedInput)) return spellingCache.get(normalizedInput)!
+
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+    try {
+        const response = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are a spelling corrector. The user will give you a hobby or skill name that may be misspelled. Return ONLY the corrected spelling with proper capitalization. Do not add any explanation, quotes, or extra text. If the spelling is already correct, return the word as-is with proper capitalization. Examples: "gitar" → "Guitar", "chesss" → "Chess", "swiming" → "Swimming", "photography" → "Photography".'
+                },
+                { role: 'user', content: input.trim() }
+            ],
+            model: 'llama-3.1-8b-instant',
+            temperature: 0,
+            max_tokens: 20,
+        })
+        const corrected = response.choices[0]?.message?.content?.trim() || input.trim()
+        // Sanitize: if the LLM returns something much longer or with special chars, fall back
+        if (corrected.length > input.length * 3 || corrected.includes('\n')) {
+            spellingCache.set(normalizedInput, input.trim())
+            return input.trim()
+        }
+        spellingCache.set(normalizedInput, corrected)
+        return corrected
+    } catch (error) {
+        console.error('[ai] Spelling correction failed:', error)
+        return input.trim()
+    }
+}

@@ -174,11 +174,9 @@ export function RootLayout() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            if (confirm(`Delete conversation for ${h.hobby}?`)) {
-                              deleteHobby(h.hobbyId);
-                              if (location.pathname.includes(h.hobbyId)) {
-                                navigate('/dashboard');
-                              }
+                            deleteHobby(h.hobbyId);
+                            if (location.pathname.includes(h.hobbyId)) {
+                              navigate('/dashboard');
                             }
                           }}
                           className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
@@ -238,8 +236,8 @@ export function RootLayout() {
             </header>
           )}
           <main className={cn(
-            "flex-1",
-            isChatPage ? "overflow-hidden pt-5 lg:pt-0" : "overflow-y-auto",
+            "flex-1 flex flex-col min-h-0 min-w-0 relative",
+            isChatPage ? "overflow-hidden pt-16 lg:pt-0" : "overflow-y-auto",
             isChatPage ? "" : (isPlanPage ? "pb-28 lg:pb-12" : "px-0 pb-28 lg:px-8 lg:pb-12")
           )}>
             <Outlet />
