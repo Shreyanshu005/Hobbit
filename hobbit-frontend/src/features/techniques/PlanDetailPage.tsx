@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
@@ -24,6 +24,7 @@ const SECTION_META: Record<Section, { label: string; number: number }> = {
 const SECTION_ORDER: Section[] = ['foundation', 'building', 'advanced'];
 
 export default function PlanDetailPage() {
+  const [imageLoaded, setImageLoaded] = useState(false);
   const { hobbyId } = useParams<{ hobbyId: string }>();
   const navigate = useNavigate();
   const { plan, isLoading, error } = usePlan(hobbyId);
@@ -56,7 +57,7 @@ export default function PlanDetailPage() {
               <ChevronLeft size={24} className="text-gray-400" />
             </div>
           </Link>
-          <h2 className="text-lg font-medium text-gray-900 tracking-tight">{plan.hobby}</h2>
+          <h2 className="text-lg font-medium text-gray-900 tracking-tight capitalize">{plan.hobby}</h2>
         </div>
         
         <div />
@@ -64,8 +65,30 @@ export default function PlanDetailPage() {
 
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-[280px] border-r border-black/5 flex flex-col shrink-0 bg-[#fff9ef] backdrop-blur-xl">
-          <div className="p-6 pb-2">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Lessons</h3>
+        
+          {imageLoaded && (
+            <div className="p-4">
+              <div className="aspect-square w-full rounded-2xl overflow-hidden border border-black/5 shadow-sm bg-white/50 mb-4 flex items-center justify-center animate-in fade-in zoom-in-95 duration-700">
+                <img 
+                  src={`https://image.pollinations.ai/prompt/${plan.hobby.toLowerCase().replace(/\s+/g, '_')}?width=400&height=400&nologo=true`} 
+                  alt={plan.hobby}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          )}
+          <img 
+            src={`https://image.pollinations.ai/prompt/${plan.hobby.toLowerCase().replace(/\s+/g, '_')}?width=400&height=400&nologo=true`} 
+            alt=""
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageLoaded(false)}
+            className="hidden"
+          />
+          <div className="p-6 pb-2 pt-0 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Lessons</h3>
+            <span className="text-[11px] font-bold text-gray-900 bg-gray-50 px-2 py-0.5 rounded-full">
+              {plan.techniques.filter(t => getTechniqueStatus(plan.hobbyId, t.id) === 'done').length} / {plan.techniques.length}
+            </span>
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 space-y-8 pb-10">
@@ -102,9 +125,31 @@ export default function PlanDetailPage() {
         <main className="flex-1 overflow-y-auto bg-transparent">
           <div className="max-w-4xl mx-auto py-20">
             <header className="mb-16">
-              <h1 className="text-5xl font-bold text-slate-900 mb-6 leading-[1.1]">
-                Learning Map
-              </h1>
+              <div className="relative inline-block mb-6">
+                <h1 
+                  className="text-5xl font-bold text-slate-900 leading-[1.1] relative z-10"
+                  style={{ fontFamily: "'Caveat', cursive" }}
+                >
+                  Learning Map
+                </h1>
+                <svg
+                  className="absolute -bottom-6 left-0 w-[60%] text-[#6d58e0]/40 pointer-events-none"
+                  viewBox="0 0 100 20"
+                  preserveAspectRatio="none"
+                  style={{ height: '0.4em' }}
+                >
+                  <motion.path 
+                    d="M 2 10 Q 50 0 98 15" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="6" 
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 1, ease: "easeInOut", delay: 0.5 }}
+                  />
+                </svg>
+              </div>
               <p className="text-xl font-medium text-gray-400 tracking-tight">
                 {completedCount} of {plan.techniques.length} lessons completed · {plan.estimatedTotalHours} hours total
               </p>

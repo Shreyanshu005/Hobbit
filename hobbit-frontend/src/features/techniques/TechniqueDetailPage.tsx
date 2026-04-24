@@ -142,33 +142,65 @@ export default function TechniqueDetailPage() {
           <div className="max-w-4xl mx-auto px-6 md:px-10 py-12 md:py-20 pb-40">
             <div className="mb-16">
               <div className="relative inline-block mb-6">
-                <h1 className="text-3xl md:text-5xl font-bold text-slate-900 leading-[1.1] relative z-10">
+                <h1 
+                  className="text-3xl md:text-5xl font-bold text-slate-900 leading-[1.1] relative z-10"
+                  style={{ fontFamily: "'Caveat', cursive" }}
+                >
                   {technique.title}
                 </h1>
                 <svg
-                  className="absolute -bottom-4 left-0 w-[110%] text-[#6d58e0]/40 pointer-events-none -translate-x-[5%]"
+                  className="absolute -bottom-6 left-0 w-[60%] text-[#6d58e0]/40 pointer-events-none"
                   viewBox="0 0 100 20"
                   preserveAspectRatio="none"
                   style={{ height: '0.4em' }}
                 >
-                  <path d="M 2 10 Q 50 0 98 15" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+                  <motion.path 
+                    d="M 2 10 Q 50 0 98 15" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="6" 
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 1, ease: "easeInOut", delay: 0.5 }}
+                  />
                 </svg>
               </div>
               <p className="text-lg md:text-xl font-medium text-gray-400 mb-10 tracking-tight">
                 {technique.whyItMatters}
               </p>
-
+ 
               <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed font-medium">
-                {technique.readingPoints.map((point, idx) => (
-                  <div key={idx} className="mb-10 group">
-                    <h3 className="text-2xl font-bold text-slate-900 mb-4">
-                      Concept {idx + 1}
-                    </h3>
-                    <p className="text-lg text-gray-600/90 leading-relaxed">
-                      {point}
-                    </p>
-                  </div>
-                ))}
+                {technique.readingPoints.map((point, idx) => {
+                  const [heading, ...contentParts] = point.includes(':') ? point.split(':') : [`Concept ${idx + 1}`, point];
+                  const fullContent = contentParts.join(':').trim();
+                  const [intro, ...bullets] = fullContent.split('•').map(s => s.trim()).filter(Boolean);
+                  
+                  return (
+                    <div key={idx} className="mb-10 group">
+                      <h3 className="text-2xl font-bold text-slate-900 mb-4">
+                        {heading.trim()}
+                      </h3>
+                      <div className="space-y-4">
+                        {intro && (
+                          <p className="text-lg text-gray-600/90 leading-relaxed">
+                            {intro}
+                          </p>
+                        )}
+                        {bullets.length > 0 && (
+                          <ul className="list-none space-y-3">
+                            {bullets.map((bullet, bIdx) => (
+                              <li key={bIdx} className="flex gap-3 text-lg text-gray-600/90">
+                                <span className="text-indigo-400 shrink-0">•</span>
+                                <span>{bullet}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

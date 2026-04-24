@@ -30,10 +30,10 @@ export function ChatMessages({
   const filteredMessages = messages.filter(m => m.role !== 'system');
 
   return (
-    <div className="flex-1 flex items-center justify-center md:items-end md:justify-center mt-10 md:mt-0">
+    <div className="flex-1 flex flex-col items-center justify-center w-full mt-10 md:mt-0 min-h-0">
       <div 
         ref={scrollRef} 
-        className="w-full max-w-3xl mx-auto px-4 space-y-8 scroll-smooth pb-24 pt-6 flex flex-col h-full max-h-[calc(100vh-18rem)] overflow-y-auto md:h-[500px] md:overflow-y-auto md:flex-none rounded-[32px]"
+        className="w-full max-w-3xl mx-auto px-6 space-y-8 scroll-smooth pb-8 pt-8 flex flex-col h-[500px] md:h-[700px] overflow-y-auto rounded-[32px] border border-black/5 bg-white/30 backdrop-blur-sm"
       >
         <div className="space-y-8 shrink-0">
           {filteredMessages.map((msg, idx) => (

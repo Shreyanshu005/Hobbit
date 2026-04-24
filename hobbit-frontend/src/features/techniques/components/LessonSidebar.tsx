@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, X } from 'lucide-react';
@@ -21,6 +22,7 @@ export function LessonSidebar({
   skipTechnique,
   setSidebarExpanded
 }: LessonSidebarProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
   const navigate = useNavigate();
 
   return (
@@ -36,11 +38,33 @@ export function LessonSidebar({
     >
       <div className="w-[280px] h-full flex flex-col">
         <div className="h-16 flex items-center px-6 border-b border-black/5">
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">{plan.hobby}</h2>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight capitalize">{plan.hobby}</h2>
         </div>
         
-        <div className="p-6 py-2">
+        {imageLoaded && (
+          <div className="p-4">
+            <div className="aspect-square w-full rounded-2xl overflow-hidden border border-black/5 shadow-sm bg-white/50 flex items-center justify-center animate-in fade-in zoom-in-95 duration-700">
+              <img 
+                src={`https://image.pollinations.ai/prompt/${plan.hobby.toLowerCase().replace(/\s+/g, '_')}?width=400&height=400&nologo=true`} 
+                alt={plan.hobby}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
+        <img 
+          src={`https://image.pollinations.ai/prompt/${plan.hobby.toLowerCase().replace(/\s+/g, '_')}?width=400&height=400&nologo=true`} 
+          alt=""
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageLoaded(false)}
+          className="hidden"
+        />
+
+        <div className="p-6 py-2 pt-2 flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Lessons</h3>
+          <span className="text-[11px] font-bold text-gray-900 bg-gray-50 px-2 py-0.5 rounded-full">
+            {plan.techniques.filter(t => getTechniqueStatus(plan.hobbyId, t.id) === 'done').length} / {plan.techniques.length}
+          </span>
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 space-y-1 pb-10">

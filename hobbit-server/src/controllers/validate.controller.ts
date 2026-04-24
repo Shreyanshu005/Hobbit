@@ -15,7 +15,7 @@ export const checkHobby = async (req: Request, res: Response): Promise<void> => 
     console.log(`[validate] Hobby "${hobby}": ${isValid ? 'VALID' : 'INVALID'}`);
 
     if (!isValid) {
-      sendError(res, `Hi! I can only help you master actual hobbies or skills (like Guitar, Chess, or Coding). Let's try something else!`, 422)
+      sendError(res, `Hi! I am Hobbit, your personal guide to learning. I can only help you master real-world hobbies or skills (like Guitar, Chess, or Coding). Please suggest a valid skill!`, 422)
       return
     }
 

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Home, Compass, Plus, ChevronLeft, MessageSquare, Trash2, User, Settings, Menu, X } from 'lucide-react';
+import { Home, Compass, Plus, ChevronLeft, Trash2, User, Settings, Menu, X } from 'lucide-react';
 import { useHobbyStore } from '../stores/useHobbyStore';
 import { cn } from '../utils/cn';
 import logoPng from '../assets/logo.png';
+import chatPng from '../assets/chat.png';
 
 import { useCollectionStore } from '../stores/useCollectionStore';
 import { HobbyButton } from './atoms/HobbyButton';
@@ -166,7 +167,7 @@ export function RootLayout() {
                             location.pathname.includes(h.hobbyId) ? "bg-indigo-600/10 text-indigo-700" : "hover:bg-black/5 text-slate-600"
                           )}
                         >
-                          <MessageSquare className="w-4 h-4 shrink-0 opacity-60" />
+                          <img src={chatPng} className="w-5 h-5 shrink-0 opacity-80" alt="" />
                           <span className="text-base font-bold truncate capitalize pr-6">{h.hobby}</span>
                         </Link>
                         <button
@@ -188,7 +189,7 @@ export function RootLayout() {
                     ))
                   ) : (
                     <div className="text-center py-10 opacity-40">
-                      <MessageSquare className="w-8 h-8 mx-auto mb-2" />
+                      <img src={chatPng} className="w-12 h-12 mx-auto mb-2 opacity-20" alt="" />
                       <p className="text-base font-bold">No chats yet</p>
                     </div>
                   )}
@@ -222,19 +223,24 @@ export function RootLayout() {
         )}
 
         <div className="min-w-0 flex-1 flex flex-col h-[100dvh] lg:h-screen">
-          {isChatPage && !isFresh && (
-            <header className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center p-4 bg-[#fffbf4] border-b border-black/5 transition-all">
-              <button
-                onClick={() => setMobileChatMenuOpen(true)}
-                className="p-1 -ml-1 text-slate-800 transition-colors"
-              >
-                <Menu className="w-7 h-7 shrink-0" strokeWidth={2.5} />
-              </button>
+          {isChatPage && (
+            <header className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center p-4 bg-[#fffbf4] border-b border-black/5 transition-all h-16">
+              {isFresh ? (
+                <img src={logoPng} alt="Hobbit" className="w-12 h-12 object-contain" />
+              ) : (
+                <button
+                  onClick={() => setMobileChatMenuOpen(true)}
+                  className="p-1 -ml-1 text-slate-800 transition-colors"
+                >
+                  <Menu className="w-7 h-7 shrink-0" strokeWidth={2.5} />
+                </button>
+              )}
             </header>
           )}
           <main className={cn(
-            "flex-1 overflow-y-auto",
-            isChatPage ? (isFresh ? "pt-4 lg:pt-0" : "pt-16 lg:pt-0 max-h-[calc(100vh-4rem)]") : (isPlanPage ? "pb-28 lg:pb-12" : "px-0 pb-28 lg:px-8 lg:pb-12")
+            "flex-1",
+            isChatPage ? "overflow-hidden pt-5 lg:pt-0" : "overflow-y-auto",
+            isChatPage ? "" : (isPlanPage ? "pb-28 lg:pb-12" : "px-0 pb-28 lg:px-8 lg:pb-12")
           )}>
             <Outlet />
           </main>
@@ -267,7 +273,7 @@ export function RootLayout() {
           </div>
         </aside>
 
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-3 py-3 bg-[#fff9ef]">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-3 py-3 bg-[#fff9ef] border-t border-black/5">
 
           <div className="flex items-center justify-evenly">
             {leftNavItems.map((item) => {

@@ -71,6 +71,8 @@ YOUTUBE SEARCH QUERY RULES:
 IMPORTANT:
 - Return ONLY raw valid JSON
 - No markdown, no code fences, no explanation text
+- readingPoints MUST follow "Heading: Detailed explanation with at least 2-3 bullet points" format (e.g. "Core Concept: This is the main idea. • Point one • Point two")
+- Bullet points must be separated by the " • " symbol.
 - estimatedMinutes must be realistic (10–45 min range)
 - practicePrompt must start with an action verb and specify a time ("Spend X minutes...")
 - scenarioChallenge only for strategic hobbies — omit key entirely for others
@@ -92,9 +94,9 @@ JSON SHAPE:
         "specific deeper dive query"
       ],
       "readingPoints": [
-        "Context point 1",
-        "Context point 2",
-        "Key thing to watch for"
+        "Core Concept: Detailed explanation of the main idea. • Essential part one • Essential part two",
+        "Key Detail: Specific nuance to understand. • Sub-point A • Sub-point B",
+        "Practical Tip: How to apply this immediately. • Implementation step • Expected result"
       ],
       "practicePrompt": "Spend 10 minutes doing exactly this: [specific action]",
       "commonMistakes": [

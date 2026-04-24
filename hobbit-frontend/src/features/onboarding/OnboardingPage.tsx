@@ -293,8 +293,7 @@ export default function OnboardingPage() {
 
   return (
     <div className={cn(
-      "flex flex-col max-w-4xl mx-auto py-8",
-      isGenerating ? "h-[calc(100vh-10rem)] md:h-[calc(100vh-100px)]" : "h-full md:h-[calc(100vh-100px)]"
+      "flex flex-col max-w-4xl mx-auto px-4 md:px-0 py-4 md:py-8 h-full"
     )}>
       {isGenerating ? (
         <div className="flex-1 flex items-center justify-center animate-in fade-in zoom-in-95 duration-500">
@@ -302,11 +301,9 @@ export default function OnboardingPage() {
         </div>
       ) : (
         <>
-          {messages.filter(m => m.role !== 'system').length <= 1 && (
-            <div className="w-full text-center text-slate-400 font-medium text-lg md:text-xl pt-4 shrink-0">
-              To personalize your course, let's understand your requirements.
-            </div>
-          )}
+          <div className="hidden md:block w-full text-center text-slate-400 font-medium text-lg md:text-xl pt-4 shrink-0">
+            To personalize your course, let's understand your requirements.
+          </div>
           
           <ChatMessages
             messages={messages}
