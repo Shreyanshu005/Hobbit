@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { useHobbyStore } from '../../stores/useHobbyStore';
+import { useCollectionStore } from '../../stores/useCollectionStore';
 import { cn } from '../../utils/cn';
 import { ChatMessages } from './components/ChatMessages';
 import { HobbyButton } from '../../components/atoms/HobbyButton';
@@ -11,8 +12,15 @@ import type { Message } from './OnboardingPage';
 export default function ExplorePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const hobbies = useHobbyStore((state) => state.hobbies);
+  const { collectionId } = useParams<{ collectionId: string }>();
+  const allHobbies = useHobbyStore((state) => state.hobbies);
+  const collections = useCollectionStore((state) => state.collections);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const collection = collections.find(c => c.id === collectionId);
+  const hobbies = collectionId && collectionId !== 'general'
+    ? allHobbies.filter(h => collection?.hobbyIds.includes(h.hobbyId))
+    : allHobbies;
 
   const hobbyIdParam = searchParams.get('hobby');
 
@@ -22,9 +30,10 @@ export default function ExplorePage() {
 
   useEffect(() => {
     if (hobbies.length > 0 && !hobbyIdParam && displayHobby) {
-      navigate(`/explore?hobby=${displayHobby.hobbyId}`, { replace: true });
+      const basePath = collectionId ? `/collection/${collectionId}` : '/explore';
+      navigate(`${basePath}?hobby=${displayHobby.hobbyId}`, { replace: true });
     }
-  }, [hobbies.length, hobbyIdParam, displayHobby, navigate]);
+  }, [hobbies.length, hobbyIdParam, displayHobby, navigate, collectionId]);
 
   const historyMessages: Message[] = displayHobby?.chatHistory
     ? displayHobby.chatHistory.map(m => ({ role: m.role as Message['role'], content: m.content }))

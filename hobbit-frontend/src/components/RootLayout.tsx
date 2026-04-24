@@ -162,7 +162,7 @@ export function RootLayout() {
                     filteredHobbies.map((h) => (
                       <div key={h.hobbyId} className="group relative">
                         <Link
-                          to={`/explore?hobby=${h.hobbyId}`}
+                          to={collectionId === 'general' ? `/explore?hobby=${h.hobbyId}` : `/collection/${collectionId}?hobby=${h.hobbyId}`}
                           onClick={() => setMobileChatMenuOpen(false)}
                           className={cn(
                             "flex items-center gap-1.5 px-4 py-3 rounded-xl transition-all",
