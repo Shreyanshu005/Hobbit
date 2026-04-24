@@ -3,13 +3,13 @@ import { useRouteError } from 'react-router-dom';
 export function GlobalErrorBoundary() {
   const error = useRouteError();
 
-  // Check if it's a dynamic import failure
+
   const isChunkLoadError = error instanceof Error && 
     (error.message.includes('Failed to fetch dynamically imported module') || 
      error.name === 'ChunkLoadError');
 
   if (isChunkLoadError) {
-    // Force reload the page to fetch the new chunks
+
     window.location.reload();
     return null;
   }

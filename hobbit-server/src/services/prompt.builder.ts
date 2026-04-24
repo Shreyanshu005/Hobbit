@@ -31,7 +31,8 @@ Determine which category fits best:
 - "creative": painting, writing, photography, crafts — expression and taste matter
 - "technical": coding, electronics, woodworking — building and problem solving matter
 
-STEP 2 — GENERATE 5 TO 8 TECHNIQUES:
+STEP 2 — GENERATE EXACTLY 5 TO 8 TECHNIQUES:
+You MUST generate an array of at least 5 techniques, but no more than 8.
 Order from most foundational to most advanced.
 Group them into sections:
 - "foundation": first 2–3 techniques, absolute basics, zero assumptions
@@ -76,6 +77,8 @@ IMPORTANT:
 - estimatedMinutes must be realistic (10–45 min range)
 - practicePrompt must start with an action verb and specify a time ("Spend X minutes...")
 - scenarioChallenge only for strategic hobbies — omit key entirely for others
+
+- "techniques" MUST be an array containing between 5 and 8 items. Do not provide fewer than 5 items.
 
 JSON SHAPE:
 {

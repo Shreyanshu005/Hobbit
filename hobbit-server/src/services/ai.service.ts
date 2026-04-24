@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import Groq from 'groq-sdk'
 import { z, ZodError } from 'zod'
 import type { HobbyGoal, HobbyLevel, Plan, Technique } from '../types/plan.types'
@@ -57,54 +56,26 @@ const getPlanCacheKey = (hobby: string, level: HobbyLevel, goal: HobbyGoal): str
     return `${hobby.toLowerCase().trim()}-${level}-${goal}`
 }
 
-let cachedModelName: string | null = null;
-
-async function getDiscoveredModel(apiKey: string): Promise<string> {
-    if (cachedModelName) return cachedModelName;
-    try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch models');
-        const data = await response.json();
-        const models = (data as any).models || [];
-
-
-        const v15Flash = models.find((m: any) => m.name.includes('gemini-1.5-flash'));
-        const stableFlash = models.find((m: any) =>
-            m.supportedGenerationMethods.includes('generateContent') &&
-            m.name.includes('flash') &&
-            !m.name.includes('2.0') && 
-            !m.name.includes('2.5')
-        );
-
-        const selected = v15Flash?.name || stableFlash?.name || 'models/gemini-1.5-flash';
-        const model = selected.replace('models/', '');
-        cachedModelName = model;
-        console.log(`[ai] Selected model: ${cachedModelName}`);
-        return model;
-    } catch (error) {
-        console.error('[ai] Model discovery failed, falling back to gemini-1.5-flash', error);
-        return 'gemini-1.5-flash';
-    }
-}
-
-const callGeminiWithRetry = async (prompt: string, maxAttempts = 3): Promise<string> => {
-    const apiKey = process.env.GEMINI_API_KEY as string;
-    const modelName = await getDiscoveredModel(apiKey);
-    const client = new GoogleGenerativeAI(apiKey);
-    const model = client.getGenerativeModel({ model: modelName });
+const callGroqWithRetry = async (prompt: string, maxAttempts = 3): Promise<string> => {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
     let lastError: any;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
-            const result = await model.generateContent(prompt);
-            return result.response.text();
+            const response = await groq.chat.completions.create({
+                messages: [
+                    { role: 'user', content: prompt }
+                ],
+                model: 'llama-3.3-70b-versatile',
+                temperature: 0.7,
+                response_format: { type: 'json_object' },
+                max_tokens: 4000,
+            });
+            return response.choices[0]?.message?.content || '';
         } catch (err: any) {
             lastError = err;
 
-
-            if (err.status === 429 || (err.message && err.message.includes('429')) || (err.message && err.message.includes('quota'))) {
-                console.error(`[ai] Quota exceeded for ${modelName}:`, err.message);
-                throw new Error('QUOTA_EXCEEDED');
+            if (err.status === 429 || (err.message && err.message.includes('429'))) {
+                console.error(`[ai] Quota exceeded for Groq:`, err.message);
             }
 
             if (attempt < maxAttempts) {
@@ -124,7 +95,7 @@ export const generatePlan = async (hobby: string, level: HobbyLevel, goal: Hobby
     if (cachedPlan) return cachedPlan
 
     const prompt = buildPlanPrompt(hobby, level, goal)
-    const rawText = await callGeminiWithRetry(prompt)
+    const rawText = await callGroqWithRetry(prompt)
     const validatedData = parsePlanResponse(rawText)
 
     const techniquesWithVideos: Technique[] = await Promise.all(
@@ -232,7 +203,7 @@ export const correctHobbySpelling = async (input: string): Promise<string> => {
             max_tokens: 20,
         })
         const corrected = response.choices[0]?.message?.content?.trim() || input.trim()
-        // Sanitize: if the LLM returns something much longer or with special chars, fall back
+
         if (corrected.length > input.length * 3 || corrected.includes('\n')) {
             spellingCache.set(normalizedInput, input.trim())
             return input.trim()

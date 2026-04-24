@@ -189,7 +189,7 @@ export default function TechniqueDetailPage() {
 
                   return (
                     <div key={idx} className="mb-10 group">
-                      <h3 className="text-2xl font-bold text-slate-900 mb-4">
+                      <h3 className="text-4xl font-bold text-slate-900 mb-4 ">
                         {heading.trim()}
                       </h3>
                       <div className="space-y-4">
@@ -219,9 +219,9 @@ export default function TechniqueDetailPage() {
               <section className="bg-transparent rounded-sm p-8 border border-slate-200 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.03)]">
                 <div className="flex items-center gap-3 text-slate-900 mb-6">
 
-                  <span className="text-sm font-bold uppercase tracking-wider">Practice Session</span>
+                  <span className="text-4xl font-bold uppercase tracking-wider">Practice Session</span>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-4">Action Step</h3>
+                <h3 className="text-3xl font-semibold text-slate-900 mb-4">Action Step</h3>
                 <p className="text-lg text-slate-700 leading-relaxed">
                   {technique.practicePrompt}
                 </p>
@@ -230,7 +230,7 @@ export default function TechniqueDetailPage() {
               <section className="bg-transparent rounded-sm p-8 border border-slate-200 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.03)]">
                 <div className="flex items-center gap-3 text-slate-900 mb-6">
 
-                  <span className="text-sm font-bold uppercase tracking-wider">Common Mistakes</span>
+                  <span className="text-4xl font-bold uppercase tracking-wider">Common Mistakes</span>
                 </div>
                 <div className="space-y-4">
                   {technique.commonMistakes.map((mistake, idx) => (
