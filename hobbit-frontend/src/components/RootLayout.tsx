@@ -61,12 +61,12 @@ export function RootLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#fffbf4] text-slate-900 selection:bg-indigo-500/30">
+    <div className="min-h-[100dvh] bg-[#fffbf4] text-slate-900 selection:bg-indigo-500/30">
       <div className={cn(
-        "min-h-screen flex flex-col lg:grid",
+        "min-h-[100dvh] flex flex-col lg:grid",
         showSidebar ? "lg:grid-cols-[80px_280px_1fr_80px]" : "lg:grid-cols-[80px_1fr_80px]"
       )}>
-        <aside className="hidden lg:block border-r border-black/5 bg-[#fff9ef] backdrop-blur-xl sticky top-0 h-screen w-[80px]">
+        <aside className="hidden lg:block border-r border-black/5 bg-[#fff9ef] backdrop-blur-xl sticky top-0 h-[100dvh] w-[80px]">
             <div className="h-full flex flex-col items-center py-5">
               <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center mb-3">
                 <img src={logoPng} alt="Hobbit" className="w-20 h-20 object-contain" />
@@ -113,7 +113,7 @@ export function RootLayout() {
               onClick={() => setMobileChatMenuOpen(false)}
             />
             <aside className={cn(
-              "border-r border-black/5 bg-[#fff9ef] backdrop-blur-xl h-screen w-[280px] z-[70]",
+              "border-r border-black/5 bg-[#fff9ef] backdrop-blur-xl h-[100dvh] w-[280px] z-[70]",
               "fixed lg:sticky lg:top-0 top-0 left-0 transition-transform duration-300 ease-in-out",
               mobileChatMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
             )}>
@@ -222,7 +222,7 @@ export function RootLayout() {
           </>
         )}
 
-        <div className="min-w-0 flex-1 flex flex-col h-[100dvh] lg:h-screen">
+        <div className="min-w-0 flex-1 flex flex-col h-[100dvh] lg:h-[100dvh]">
           {isExplorePage && hobbies.length > 0 && (
             <header className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center p-4 bg-[#fffbf4] border-b border-black/5 transition-all h-16">
               <button
@@ -255,7 +255,7 @@ export function RootLayout() {
           </main>
         </div>
 
-        <aside className="hidden lg:block border-l border-black/5 bg-[#fff9ef] backdrop-blur-xl sticky top-0 h-screen w-[80px]">
+        <aside className="hidden lg:block border-l border-black/5 bg-[#fff9ef] backdrop-blur-xl sticky top-0 h-[100dvh] w-[80px]">
 
           <div className="h-full flex flex-col items-center py-5">
             <nav className="flex flex-col gap-1">
