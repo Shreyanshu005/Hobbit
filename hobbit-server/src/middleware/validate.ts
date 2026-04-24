@@ -4,7 +4,7 @@ import { sendError } from '../utils/response'
 
 export const planRequestSchema = z.object({
     hobby: z
-        .string({ required_error: 'Hobby is required' })
+        .string({ message: 'Hobby is required' })
         .min(3, 'Hobby must be at least 3 characters')
         .max(50, 'Hobby name is too long')
         .trim()
@@ -14,10 +14,10 @@ export const planRequestSchema = z.object({
             'Please enter a valid hobby name'
         ),
     level: z.enum(['beginner', 'intermediate', 'casual'], {
-        errorMap: () => ({ message: 'Level must be beginner, intermediate, or casual' }),
+        message: 'Level must be beginner, intermediate, or casual',
     }),
     goal: z.enum(['just-for-fun', 'perform', 'compete', 'social'], {
-        errorMap: () => ({ message: 'Goal must be just-for-fun, perform, compete, or social' }),
+        message: 'Goal must be just-for-fun, perform, compete, or social',
     }),
 })
 

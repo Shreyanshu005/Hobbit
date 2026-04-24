@@ -89,12 +89,12 @@ const callGroqWithRetry = async (prompt: string, maxAttempts = 3): Promise<strin
     throw lastError;
 };
 
-export const generatePlan = async (hobby: string, level: HobbyLevel, goal: HobbyGoal): Promise<Plan> => {
+export const generatePlan = async (hobby: string, level: HobbyLevel, goal: HobbyGoal, chatHistory?: any[]): Promise<Plan> => {
     const cacheKey = getPlanCacheKey(hobby, level, goal)
     const cachedPlan = planCache.get(cacheKey)
-    if (cachedPlan) return cachedPlan
+    if (cachedPlan && !chatHistory) return cachedPlan
 
-    const prompt = buildPlanPrompt(hobby, level, goal)
+    const prompt = buildPlanPrompt(hobby, level, goal, chatHistory)
     const rawText = await callGroqWithRetry(prompt)
     const validatedData = parsePlanResponse(rawText)
 

@@ -51,6 +51,7 @@ export interface PlanRequestBody {
   hobby: string
   level: HobbyLevel
   goal: HobbyGoal
+  chatHistory?: Array<{ role: string, content: string }>
 }
 
 export interface ApiSuccessResponse<T> {

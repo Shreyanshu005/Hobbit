@@ -7,10 +7,10 @@ export const createPlan = async (
     req: Request<object, object, PlanRequestBody>,
     res: Response
 ): Promise<void> => {
-    const { hobby, level, goal } = req.body
+    const { hobby, level, goal, chatHistory } = req.body
 
     try {
-        const plan = await generatePlan(hobby, level, goal)
+        const plan = await generatePlan(hobby, level, goal, chatHistory)
         sendSuccess(res, plan, 201)
     } catch (error) {
         if (error instanceof Error) {

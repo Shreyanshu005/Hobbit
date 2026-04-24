@@ -16,13 +16,19 @@ const GOAL_CONTEXT: Record<HobbyGoal, string> = {
 export const buildPlanPrompt = (
   hobby: string,
   level: HobbyLevel,
-  goal: HobbyGoal
-): string => `You are an expert hobby learning coach. Generate a focused, opinionated learning plan.
+  goal: HobbyGoal,
+  chatHistory?: Array<{ role: string, content: string }>
+): string => {
+  const historyText = chatHistory && chatHistory.length > 0
+    ? `\n\nUSER CONVERSATION CONTEXT:\n${chatHistory.map(m => `${m.role}: ${m.content}`).join('\n')}\n(Use this context to deeply personalize the plan!)`
+    : '';
+
+  return `You are an expert hobby learning coach. Generate a focused, opinionated learning plan.
 
 PERSON:
 - Hobby: ${hobby}
 - Level: ${LEVEL_CONTEXT[level]}
-- Goal: ${GOAL_CONTEXT[goal]}
+- Goal: ${GOAL_CONTEXT[goal]}${historyText}
 
 STEP 1 — CLASSIFY THE HOBBY:
 Determine which category fits best:
@@ -114,4 +120,5 @@ JSON SHAPE:
       }
     }
   ]
-}`
+  }`
+}
