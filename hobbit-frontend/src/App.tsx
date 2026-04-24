@@ -6,6 +6,7 @@ import {
 import { Suspense, lazy } from 'react';
 import { RootLayout } from './components/RootLayout';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import type { ReactNode } from 'react';
 
 const OnboardingPage = lazy(() => import('./features/onboarding/OnboardingPage'));
@@ -24,6 +25,7 @@ const router = createHashRouter([
   {
     path: '/',
     element: <RootLayout />,
+    errorElement: <GlobalErrorBoundary />,
     children: [
       {
         index: true,
