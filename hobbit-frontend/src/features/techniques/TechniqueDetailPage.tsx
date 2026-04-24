@@ -49,6 +49,17 @@ export default function TechniqueDetailPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (sidebarExpanded && window.innerWidth <= 1024) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [sidebarExpanded]);
+
   const technique = useMemo(() => plan?.techniques.find(t => t.id === techniqueId), [plan, techniqueId]);
   const currentIndex = useMemo(() => plan?.techniques.findIndex(t => t.id === techniqueId) ?? -1, [plan, techniqueId]);
 
@@ -95,7 +106,7 @@ export default function TechniqueDetailPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSidebarExpanded(false)}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden"
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60] lg:hidden"
           />
         )}
       </AnimatePresence>

@@ -32,7 +32,7 @@ export function LessonSidebar({
       exit={{ width: 0, opacity: 0 }}
       transition={{ type: "spring", bounce: 0, duration: 0.3 }}
       className={cn(
-        "border-r border-black/5 flex flex-col shrink-0 bg-[#fff9ef] backdrop-blur-xl overflow-hidden h-full z-40",
+        "border-r border-black/5 flex flex-col shrink-0 bg-[#fff9ef] backdrop-blur-xl overflow-hidden h-full z-[70]",
         "fixed lg:relative top-0 bottom-0 left-0 lg:left-auto shadow-2xl lg:shadow-none"
       )}
     >
