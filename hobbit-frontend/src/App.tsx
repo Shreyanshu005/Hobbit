@@ -10,6 +10,7 @@ import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import type { ReactNode } from 'react';
 
 const OnboardingPage = lazy(() => import('./features/onboarding/OnboardingPage'));
+const ExplorePage = lazy(() => import('./features/onboarding/ExplorePage'));
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const PlanDetailPage = lazy(() => import('./features/techniques/PlanDetailPage'));
 const TechniqueDetailPage = lazy(() => import('./features/techniques/TechniqueDetailPage'));
@@ -32,12 +33,24 @@ const router = createHashRouter([
         element: <Navigate to="/dashboard" replace />,
       },
       {
-        path: 'onboarding',
+        path: 'explore',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <ExplorePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'new-chat',
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <OnboardingPage />
           </Suspense>
         ),
+      },
+      {
+        path: 'onboarding',
+        element: <Navigate to="/explore" replace />,
       },
       {
         path: 'dashboard',
@@ -99,7 +112,7 @@ const router = createHashRouter([
         path: 'collection/:collectionId',
         element: (
           <Suspense fallback={<LoadingSpinner />}>
-            <OnboardingPage />
+            <ExplorePage />
           </Suspense>
         ),
       },

@@ -1,16 +1,16 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useHobbyStore } from '../../stores/useHobbyStore';
-import { useCollectionStore } from '../../stores/useCollectionStore';
-import { planService } from '../../services/planService';
+
+import { usePlanGenerationStore } from '../../stores/usePlanGenerationStore';
 import { storage, STORAGE_KEYS } from '../../utils/storage';
 import { validateHobby } from '../../utils/validators';
 import * as validateService from '../../services/validateService';
-import { fetchHobbyFacts } from '../../services/hobbyService';
 import { cn } from '../../utils/cn';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { ChatMessages } from './components/ChatMessages';
 import { ChatInput } from './components/ChatInput';
+import { HobbyButton } from '../../components/atoms/HobbyButton';
+import { Plus } from 'lucide-react';
 
 export type Message = {
   role: 'user' | 'assistant' | 'system';
@@ -52,26 +52,54 @@ function extractHobby(raw: string): string {
   return cleaned || raw.trim();
 }
 
+const defaultMessages: Message[] = [
+  { role: 'system', content: "To personalize your course, let's understand your learning goal and background knowledge." },
+  { role: 'assistant', content: "Hi! I am Hobbit. What hobby would you like to master today?" }
+];
+
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const { collectionId } = useParams<{ collectionId: string }>();
   const [searchParams] = useSearchParams();
-  const addHobby = useHobbyStore((state) => state.addHobby);
-  const addHobbyToCollection = useCollectionStore((state) => state.addHobbyToCollection);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const isFresh = searchParams.get('fresh') === '1';
 
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'system', content: "To personalize your course, let's understand your learning goal and background knowledge." },
-    { role: 'assistant', content: "Hi! I am Hobbit. What hobby would you like to master today?" }
-  ]);
-  const [input, setInput] = useState('');
-  const [hobby, setHobby] = useState('');
-  const [level, setLevel] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'checking' | 'error' | 'valid'>('idle');
-  const [loadingFacts, setLoadingFacts] = useState<string[]>([]);
-  const [factIndex, setFactIndex] = useState(0);
+  const genStatus = usePlanGenerationStore((s) => s.status);
+  const genHobby = usePlanGenerationStore((s) => s.hobby);
+  const genLoadingFacts = usePlanGenerationStore((s) => s.loadingFacts);
+  const genFactIndex = usePlanGenerationStore((s) => s.factIndex);
+  const genPlanId = usePlanGenerationStore((s) => s.generatedPlanId);
+  const genError = usePlanGenerationStore((s) => s.error);
+  const startGeneration = usePlanGenerationStore((s) => s.startGeneration);
+  const resetGeneration = usePlanGenerationStore((s) => s.reset);
+
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (isFresh) return defaultMessages;
+    const saved: any = storage.get(STORAGE_KEYS.ONBOARDING_STATE);
+    return saved?.messages || defaultMessages;
+  });
+  const [input, setInput] = useState(() => {
+    if (isFresh) return '';
+    const saved: any = storage.get(STORAGE_KEYS.ONBOARDING_STATE);
+    return saved?.input || '';
+  });
+  const [hobby, setHobby] = useState(() => {
+    if (isFresh) return '';
+    const saved: any = storage.get(STORAGE_KEYS.ONBOARDING_STATE);
+    return saved?.hobby || '';
+  });
+  const [level, setLevel] = useState(() => {
+    if (isFresh) return '';
+    const saved: any = storage.get(STORAGE_KEYS.ONBOARDING_STATE);
+    return saved?.level || '';
+  });
+  const [status, setStatus] = useState<'idle' | 'checking' | 'error' | 'valid'>(() => {
+    if (isFresh) return 'idle';
+    const saved: any = storage.get(STORAGE_KEYS.ONBOARDING_STATE);
+    const s = saved?.status || 'idle';
+    return s === 'checking' ? 'idle' : s;
+  });
   const [shouldScrollOnNextMessage, setShouldScrollOnNextMessage] = useState(false);
 
   const isNearBottom = useCallback(() => {
@@ -81,47 +109,143 @@ export default function OnboardingPage() {
     return distanceFromBottom < 120;
   }, []);
 
-  useEffect(() => {
-    if (isFresh) {
-      storage.remove(STORAGE_KEYS.ONBOARDING_STATE);
-      setMessages([
-        { role: 'system', content: "To personalize your course, let's understand your learning goal and background knowledge." },
-        { role: 'assistant', content: "Hi! I am Hobbit. What hobby would you like to master today?" }
-      ]);
-      setInput('');
-      setHobby('');
-      setLevel('');
-      setStatus('idle');
-      setLoadingFacts([]);
-      setFactIndex(0);
-    } else {
-      const persistedState: any = storage.get(STORAGE_KEYS.ONBOARDING_STATE);
-      if (persistedState) {
-        setMessages(persistedState.messages || messages);
-        setInput(persistedState.input || '');
-        setHobby(persistedState.hobby || '');
-        setLevel(persistedState.level || '');
-        setStatus(persistedState.status || 'idle');
-        setLoadingFacts(persistedState.loadingFacts || []);
-        setFactIndex(persistedState.factIndex || 0);
-      }
-    }
-  }, [isFresh]);
+  const clearChat = useCallback(() => {
+    storage.remove(STORAGE_KEYS.ONBOARDING_STATE);
+    setMessages(defaultMessages);
+    setInput('');
+    setHobby('');
+    setLevel('');
+    setStatus('idle');
+    storage.set(STORAGE_KEYS.ONBOARDING_STATE, { active: true });
+  }, []);
 
   useEffect(() => {
-    if (!isFresh) {
-      const stateToPersist = {
-        messages,
-        input,
-        hobby,
-        level,
-        status,
-        loadingFacts,
-        factIndex
-      };
-      storage.set(STORAGE_KEYS.ONBOARDING_STATE, stateToPersist);
+    window.addEventListener('clear-chat', clearChat);
+    return () => window.removeEventListener('clear-chat', clearChat);
+  }, [clearChat]);
+
+  useEffect(() => {
+    if (genStatus === 'done' && genPlanId) {
+      storage.remove(STORAGE_KEYS.ONBOARDING_STATE);
+      navigate(`/plan/${genPlanId}`);
+      resetGeneration();
     }
-  }, [messages, input, hobby, level, status, loadingFacts, factIndex, isFresh]);
+  }, [genStatus, genPlanId, navigate, resetGeneration]);
+
+  useEffect(() => {
+    if (genStatus === 'error' && genError) {
+      setMessages(prev => [...prev, { role: 'assistant', content: "Plan generation failed. Please try again." }]);
+      resetGeneration();
+    }
+  }, [genStatus, genError, resetGeneration]);
+
+  useEffect(() => {
+    let isActive = true;
+    let timerId: ReturnType<typeof setTimeout>;
+
+    if (isFresh) {
+      clearChat();
+      navigate('/new-chat', { replace: true });
+    } else {
+      const saved: any = storage.get(STORAGE_KEYS.ONBOARDING_STATE);
+      if (saved?.messages?.length > 0) {
+        const lastMsg = saved.messages[saved.messages.length - 1];
+        const hasGoalQuestion = saved.messages.some(
+          (m: any) => m.role === 'assistant' && m.field === 'goal'
+        );
+        const hasLevelQuestion = saved.messages.some(
+          (m: any) => m.role === 'assistant' && m.field === 'level'
+        );
+
+        if (lastMsg.role === 'user') {
+          setStatus('checking');
+          
+          if (!hasLevelQuestion) {
+            const extractedHobby = extractHobby(lastMsg.content);
+            validateService.checkHobby(extractedHobby).then(response => {
+              if (!isActive) return;
+              if (!response.success) {
+                setStatus('idle');
+                setMessages((prev: Message[]) => [...prev, { role: 'assistant', content: response.error }]);
+                return;
+              }
+              const correctedHobby = response.data?.hobby || extractedHobby;
+              setHobby(correctedHobby);
+              timerId = setTimeout(() => {
+                if (!isActive) return;
+                setStatus('idle');
+                setMessages((prev: Message[]) => [
+                  ...prev,
+                  {
+                    role: 'assistant',
+                    content: `That's a great choice! What is your current experience level with ${correctedHobby}?`,
+                    type: 'options',
+                    field: 'level',
+                    options: ['Beginner', 'Know basics', 'Intermediate', 'Advanced']
+                  }
+                ]);
+              }, 500);
+            }).catch(() => {
+              if (!isActive) return;
+              setStatus('error');
+              setMessages((prev: Message[]) => [...prev, { role: 'assistant', content: `Please check your network or try again.` }]);
+            });
+
+          } else if (hasLevelQuestion && !hasGoalQuestion) {
+            const mappedLevel = lastMsg.content.toLowerCase().includes('beginner') ? 'beginner' :
+              lastMsg.content.toLowerCase().includes('intermediate') ? 'intermediate' : 'casual';
+            setLevel(mappedLevel);
+            timerId = setTimeout(() => {
+              if (!isActive) return;
+              setStatus('idle');
+              setMessages((prev: Message[]) => [
+                ...prev,
+                {
+                  role: 'assistant',
+                  content: `Perfect. And what's your primary goal for learning ${saved.hobby || 'this'}?`,
+                  type: 'options',
+                  field: 'goal',
+                  options: ['Just for fun', 'Perform', 'Compete', 'Social']
+                }
+              ]);
+            }, 500);
+
+          } else if (hasGoalQuestion) {
+            const mappedGoal = lastMsg.content.toLowerCase().includes('fun') ? 'just-for-fun' :
+              lastMsg.content.toLowerCase().includes('perform') ? 'perform' :
+                lastMsg.content.toLowerCase().includes('compete') ? 'compete' : 'social';
+            timerId = setTimeout(() => {
+              if (!isActive) return;
+              setStatus('idle');
+              startGeneration({
+                hobby: saved.hobby,
+                level: saved.level || 'beginner',
+                goal: mappedGoal,
+                collectionId,
+                messages: saved.messages,
+              });
+            }, 500);
+          }
+        }
+      }
+    }
+
+    return () => {
+      isActive = false;
+      if (timerId) clearTimeout(timerId);
+    };
+  }, []);
+
+  useEffect(() => {
+    storage.set(STORAGE_KEYS.ONBOARDING_STATE, {
+      active: true,
+      messages,
+      input,
+      hobby,
+      level,
+      status,
+    });
+  }, [messages, input, hobby, level, status]);
 
   const [placeholderText, setPlaceholderText] = useState('');
   const [promptIdx, setPromptIdx] = useState(0);
@@ -151,17 +275,6 @@ export default function OnboardingPage() {
 
     return () => clearTimeout(timer);
   }, [charIdx, isDeleting, promptIdx]);
-
-  useEffect(() => {
-    if (isGenerating && loadingFacts.length > 0) {
-      const interval = setInterval(() => {
-        setFactIndex((prev) => (prev + 1) % loadingFacts.length);
-      }, 3000);
-      return () => clearInterval(interval);
-    } else {
-      setFactIndex(0);
-    }
-  }, [isGenerating, loadingFacts]);
 
   useEffect(() => {
     if (shouldScrollOnNextMessage && scrollRef.current) {
@@ -231,11 +344,29 @@ export default function OnboardingPage() {
           ...prev,
           {
             role: 'assistant',
-            content: `Please check your network or try again later.`
+            content: `Please check your network or try again.`
           }
         ]);
       }, 2000);
     }
+  };
+
+  const handleInputSubmit = async () => {
+    if (!input.trim()) return;
+
+    if (hobby && level && genStatus !== 'generating') {
+      handleOptionSelect(input, 'goal');
+      setInput('');
+      return;
+    }
+    
+    if (hobby && !level && genStatus !== 'generating') {
+      handleOptionSelect(input, 'level');
+      setInput('');
+      return;
+    }
+    
+    handleHobbySubmit();
   };
 
   const handleOptionSelect = (option: string, field: 'level' | 'goal') => {
@@ -265,45 +396,41 @@ export default function OnboardingPage() {
           option.toLowerCase().includes('compete') ? 'compete' : 'social';
       setTimeout(() => {
         setStatus('idle');
-        generatePlan(mappedGoal);
+        startGeneration({
+          hobby,
+          level,
+          goal: mappedGoal,
+          collectionId,
+          messages,
+        });
       }, 2000);
     }
   };
 
-  const generatePlan = async (finalGoal: string) => {
-    setIsGenerating(true);
-    fetchHobbyFacts(hobby).then(facts => setLoadingFacts(facts));
-    try {
-      const plan = await planService.getPlan(hobby, level as any, finalGoal as any);
-      addHobby({ ...plan, chatHistory: messages });
-
-      if (collectionId && collectionId !== 'general') {
-        addHobbyToCollection(collectionId, plan.hobbyId);
-      }
-
-      storage.remove(STORAGE_KEYS.SETTINGS);
-      navigate(`/plan/${plan.hobbyId}`);
-    } catch (err: any) {
-      setIsGenerating(false);
-      setStatus('error');
-      setMessages(prev => [...prev, { role: 'assistant', content: "Please check your network or try again later." }]);
-    }
-  };
-
-  const currentFact = loadingFacts.length > 0 ? loadingFacts[factIndex] : `Crafting your personalized ${hobby} plan...`;
+  const currentFact = genLoadingFacts.length > 0 ? genLoadingFacts[genFactIndex] : `Crafting your personalized ${genHobby || hobby} plan...`;
 
   return (
     <div className={cn(
       "absolute left-0 right-0 bottom-[100px] lg:bottom-4 top-16 lg:top-0 flex flex-col w-full max-w-4xl mx-auto px-4 md:px-0 py-2 md:py-8 overflow-hidden"
     )}>
-      {isGenerating ? (
+      {genStatus === 'generating' ? (
         <div className="flex-1 flex items-center justify-center animate-in fade-in zoom-in-95 duration-500">
           <LoadingSpinner size={200} message={currentFact} fullHeight={false} />
         </div>
       ) : (
         <>
-          <div className="hidden md:block w-full text-center text-slate-400 font-medium text-lg md:text-xl pt-3 pb-3 shrink-0">
-            To personalize your course, let's understand your requirements.
+          <div className="w-full hidden md:flex items-center justify-between pt-3 pb-3 shrink-0 max-w-3xl mx-auto">
+            <span className="text-slate-400 font-medium text-lg md:text-xl">
+              To personalize your course, let's understand your requirements.
+            </span>
+            <HobbyButton
+              onClick={clearChat}
+              variant="outline"
+              className="rounded-full px-4 py-2 flex items-center gap-1.5 text-sm shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              New Chat
+            </HobbyButton>
           </div>
 
           <ChatMessages
@@ -318,9 +445,9 @@ export default function OnboardingPage() {
             input={input}
             setInput={setInput}
             status={status}
-            isGenerating={isGenerating}
+            isGenerating={false}
             placeholder={placeholderText}
-            onSubmit={handleHobbySubmit}
+            onSubmit={handleInputSubmit}
           />
         </>
       )}

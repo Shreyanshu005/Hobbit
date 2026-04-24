@@ -40,7 +40,7 @@ export default function DashboardPage() {
               <span className="block font-semibold">hobby.</span>
             </h1>
 
-            <Link to="/onboarding?fresh=1">
+            <Link to="/new-chat?fresh=1">
               <button
                 className="rounded-full px-6 py-2 font-bold text-lg bg-[#f6af40] text-gray-900 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-100"
               >

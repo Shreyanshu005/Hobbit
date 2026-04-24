@@ -105,7 +105,9 @@ export function LessonSidebar({
                 >
                   <span className={cn(
                     'text-base font-medium leading-snug block truncate transition-all',
-                    isActive ? 'font-semibold text-gray-900' : (tStatus === 'done' || tStatus === 'skipped' ? 'text-gray-400 line-through' : 'text-gray-600')
+                    isActive
+                      ? (tStatus === 'done' || tStatus === 'skipped' ? 'font-semibold text-gray-400 line-through' : 'font-semibold text-gray-900')
+                      : (tStatus === 'done' || tStatus === 'skipped' ? 'text-gray-400 line-through' : 'text-gray-600')
                   )}>
                     {t.title}
                   </span>

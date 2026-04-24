@@ -33,10 +33,12 @@ export function RootLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileChatMenuOpen, setMobileChatMenuOpen] = useState(false);
 
-  const isChatPage = location.pathname === '/onboarding' || !!match;
+  const isExplorePage = location.pathname === '/explore' || !!match;
+  const isNewChatPage = location.pathname === '/new-chat';
+  const isChatPage = isExplorePage || isNewChatPage;
   const isPlanPage = location.pathname.startsWith('/plan/') || location.pathname.startsWith('/technique/');
   const isFresh = searchParams.get('fresh') === '1';
-  const showSidebar = isChatPage && !isFresh;
+  const showSidebar = isExplorePage && hobbies.length > 0;
 
 
   useEffect(() => {
@@ -49,8 +51,8 @@ export function RootLayout() {
 
   const leftNavItems = [
     { name: 'Home', href: '/dashboard', icon: Home },
-    { name: 'Explore', href: '/onboarding', icon: Compass },
-    { name: 'New', href: '/onboarding?fresh=1', icon: Plus },
+    { name: 'Explore', href: '/explore', icon: Compass },
+    { name: 'New', href: '/new-chat', icon: Plus },
   ];
 
   const rightNavItems = [
@@ -73,7 +75,7 @@ export function RootLayout() {
                 {leftNavItems.map((item) => {
                   const Icon = item.icon;
                   const currentPath = location.pathname + (location.search || '');
-                  const isActive = currentPath === item.href || (item.name === 'Explore' && location.pathname === '/onboarding' && !isFresh);
+                  const isActive = currentPath === item.href || (item.name === 'Explore' && isExplorePage) || (item.name === 'New' && isNewChatPage);
                   return (
                     <Link
                       key={item.name}
@@ -141,7 +143,7 @@ export function RootLayout() {
                     <HobbyButton
                       onClick={() => {
                         setMobileChatMenuOpen(false);
-                        navigate('/onboarding?fresh=1');
+                        navigate('/new-chat?fresh=1');
                       }}
                       className={cn(
                         "w-full rounded-full py-3 flex items-center justify-center gap-2",
@@ -160,11 +162,11 @@ export function RootLayout() {
                     filteredHobbies.map((h) => (
                       <div key={h.hobbyId} className="group relative">
                         <Link
-                          to={`/plan/${h.hobbyId}`}
+                          to={`/explore?hobby=${h.hobbyId}`}
                           onClick={() => setMobileChatMenuOpen(false)}
                           className={cn(
                             "flex items-center gap-1.5 px-4 py-3 rounded-xl transition-all",
-                            location.pathname.includes(h.hobbyId) ? "bg-indigo-600/10 text-indigo-700" : "hover:bg-black/5 text-slate-600"
+                            searchParams.get('hobby') === h.hobbyId ? "bg-indigo-600/10 text-indigo-700" : "hover:bg-black/5 text-slate-600"
                           )}
                         >
                           <img src={chatPng} className="w-5 h-5 shrink-0 opacity-80" alt="" />
@@ -221,18 +223,27 @@ export function RootLayout() {
         )}
 
         <div className="min-w-0 flex-1 flex flex-col h-[100dvh] lg:h-screen">
-          {isChatPage && (
+          {isExplorePage && hobbies.length > 0 && (
             <header className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center p-4 bg-[#fffbf4] border-b border-black/5 transition-all h-16">
-              {isFresh ? (
-                <img src={logoPng} alt="Hobbit" className="w-12 h-12 object-contain" />
-              ) : (
-                <button
-                  onClick={() => setMobileChatMenuOpen(true)}
-                  className="p-1 -ml-1 text-slate-800 transition-colors"
-                >
-                  <Menu className="w-7 h-7 shrink-0" strokeWidth={2.5} />
-                </button>
-              )}
+              <button
+                onClick={() => setMobileChatMenuOpen(true)}
+                className="p-1 -ml-1 text-slate-800 transition-colors"
+              >
+                <Menu className="w-7 h-7 shrink-0" strokeWidth={2.5} />
+              </button>
+            </header>
+          )}
+          {isNewChatPage && (
+            <header className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-[#fffbf4] border-b border-black/5 transition-all h-16">
+              <img src={logoPng} alt="Hobbit" className="w-12 h-12 object-contain" />
+              <HobbyButton
+                onClick={() => window.dispatchEvent(new Event('clear-chat'))}
+                variant="outline"
+                className="rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                New Chat
+              </HobbyButton>
             </header>
           )}
           <main className={cn(
@@ -277,7 +288,7 @@ export function RootLayout() {
             {leftNavItems.map((item) => {
               const Icon = item.icon;
               const currentPath = location.pathname + (location.search || '');
-              const isActive = (currentPath === item.href) || (item.name === 'Explore' && location.pathname === '/onboarding' && !isFresh);
+              const isActive = (currentPath === item.href) || (item.name === 'Explore' && isExplorePage) || (item.name === 'New' && isNewChatPage);
               return (
                 <Link
                   key={item.name}

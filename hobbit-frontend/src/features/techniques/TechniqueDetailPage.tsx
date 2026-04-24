@@ -154,7 +154,7 @@ export default function TechniqueDetailPage() {
             <div className="mb-16">
               <div className="relative inline-block mb-6">
                 <h1
-                  className="text-3xl md:text-5xl font-bold text-slate-900 leading-[1.1] relative z-10"
+                  className="text-5xl md:text-5xl font-bold text-slate-900 leading-[1.1] relative z-10"
                   style={{ fontFamily: "'Caveat', cursive" }}
                 >
                   {technique.title}
