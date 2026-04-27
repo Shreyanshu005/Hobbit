@@ -10,6 +10,7 @@ interface ChatInputProps {
   isGenerating: boolean;
   placeholder: string;
   onSubmit: () => void;
+  disabled?: boolean;
 }
 
 export function ChatInput({
@@ -18,7 +19,8 @@ export function ChatInput({
   status,
   isGenerating,
   placeholder,
-  onSubmit
+  onSubmit,
+  disabled = false
 }: ChatInputProps) {
   const [isListening, setIsListening] = useState(false);
 
@@ -81,16 +83,16 @@ export function ChatInput({
           <input
             type="text"
             value={input}
-            disabled={status === 'checking' || isGenerating}
+            disabled={status === 'checking' || isGenerating || disabled}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
+            onKeyDown={(e) => e.key === 'Enter' && !disabled && onSubmit()}
             placeholder={isListening ? "Listening..." : placeholder}
             className="flex-1 bg-transparent py-4 pl-6 pr-12 text-base md:text-xl font-medium text-slate-900 focus:outline-none placeholder:text-slate-500 disabled:opacity-50"
           />
           <button
             type="button"
             onClick={startListening}
-            disabled={status === 'checking' || isGenerating}
+            disabled={status === 'checking' || isGenerating || disabled}
             className={cn(
               "absolute right-3 p-2 rounded-xl transition-all",
               isListening ? "text-slate-900 bg-[#f6af40] animate-pulse" : "text-slate-400 hover:text-slate-600 hover:bg-black/5"
@@ -101,7 +103,7 @@ export function ChatInput({
         </div>
         <HobbyButton
           onClick={onSubmit}
-          disabled={input.length < 2 || isGenerating || status === 'checking'}
+          disabled={input.length < 2 || isGenerating || status === 'checking' || disabled}
           className="w-[60px] h-[60px] p-0 rounded-2xl shrink-0 bg-[#fffbf4]"
         >
           <ArrowUp size={24} strokeWidth={2.5} />

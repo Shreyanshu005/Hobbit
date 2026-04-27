@@ -297,7 +297,7 @@ export default function OnboardingPage() {
     const basicError = validateHobby(input);
     if (basicError) {
       setMessages(prev => [...prev, { role: 'user', content: input }]);
-      setShouldScrollOnNextMessage(isNearBottom());
+      setShouldScrollOnNextMessage(true);
       setInput('');
       setStatus('checking');
       setTimeout(() => {
@@ -311,7 +311,7 @@ export default function OnboardingPage() {
     const rawInput = input.trim();
     const extractedHobby = extractHobby(rawInput);
     setMessages(prev => [...prev, { role: 'user', content: rawInput }]);
-    setShouldScrollOnNextMessage(isNearBottom());
+    setShouldScrollOnNextMessage(true);
     setInput('');
 
     try {
@@ -394,16 +394,25 @@ export default function OnboardingPage() {
       const mappedGoal = option.toLowerCase().includes('fun') ? 'just-for-fun' :
         option.toLowerCase().includes('perform') ? 'perform' :
           option.toLowerCase().includes('compete') ? 'compete' : 'social';
+      
       setTimeout(() => {
         setStatus('idle');
-        startGeneration({
-          hobby,
-          level,
-          goal: mappedGoal,
-          collectionId,
-          messages,
-        });
-      }, 2000);
+        const ackMessage = { 
+          role: 'assistant' as const, 
+          content: `Got it! I'm now crafting your personalized ${hobby} plan based on your choices. This will take just a few seconds...` 
+        };
+        setMessages(prev => [...prev, ackMessage]);
+        
+        setTimeout(() => {
+          startGeneration({
+            hobby,
+            level,
+            goal: mappedGoal,
+            collectionId,
+            messages: [...messages, { role: 'user', content: option }, ackMessage],
+          });
+        }, 1500);
+      }, 1000);
     }
   };
 
@@ -446,8 +455,9 @@ export default function OnboardingPage() {
             setInput={setInput}
             status={status}
             isGenerating={false}
-            placeholder={placeholderText}
+            placeholder={messages[messages.length - 1]?.type === 'options' ? "Please select an option above..." : placeholderText}
             onSubmit={handleInputSubmit}
+            disabled={messages[messages.length - 1]?.type === 'options'}
           />
         </>
       )}

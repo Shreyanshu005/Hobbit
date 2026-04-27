@@ -75,13 +75,16 @@ YOUTUBE SEARCH QUERY RULES:
 - Must be specific and findable — include "tutorial", "beginner", "how to", "lesson"
 - Bad: "guitar chords". Good: "how to play open G chord guitar beginner close up slow motion"
 
-IMPORTANT:
-- Return ONLY raw valid JSON
-- No markdown, no code fences, no explanation text
-- readingPoints MUST follow "Heading: Detailed explanation with at least 2-3 bullet points" format (e.g. "Core Concept: This is the main idea. • Point one • Point two")
-- Bullet points must be separated by the " • " symbol.
-- estimatedMinutes must be realistic (10–45 min range)
-- practicePrompt must start with an action verb and specify a time ("Spend X minutes...")
+IMPORTANT FOR VERBOSITY AND DETAIL:
+- The user is hungry for deep, detailed knowledge. BE EXTREMELY VERBOSE AND COMPREHENSIVE in your descriptions!
+- "whyItMatters" should be a rich, inspiring paragraph explaining the deep mechanics of why this technique unlocks mastery.
+- "readingPoints" MUST be highly detailed paragraphs. Explain the "HOW" and the "WHY" comprehensively. Use the format "Heading: Extremely detailed explanation of the concept. • Point one • Point two • Point three". Give deep, actionable insights.
+- "practicePrompt" must be highly detailed, breaking down the practice routine step-by-step.
+- "commonMistakes" should explain not just what the mistake is, but WHY it happens and exactly HOW to fix it.
+- "scenarioChallenge.prompt" and "scenarioChallenge.explanation" should be highly detailed, reading like a mini case study.
+- Return ONLY raw valid JSON. No markdown, no code fences.
+- Bullet points MUST be separated by the " • " symbol.
+- estimatedMinutes must be realistic (20–60 min range)
 - scenarioChallenge only for strategic hobbies — omit key entirely for others
 
 - "techniques" MUST be an array containing between 5 and 8 items. Do not provide fewer than 5 items.
@@ -94,29 +97,29 @@ JSON SHAPE:
     {
       "id": "unique-kebab-case-id",
       "title": "Technique name",
-      "whyItMatters": "One sentence — why this is essential for their specific goal",
+      "whyItMatters": "A highly detailed, rich, and inspiring paragraph explaining the deep mechanics and philosophy of why this technique unlocks mastery.",
       "difficulty": "beginner",
       "section": "foundation",
-      "estimatedMinutes": 20,
+      "estimatedMinutes": 45,
       "youtubeSearchQueries": [
         "specific foundational query",
         "specific deeper dive query"
       ],
       "readingPoints": [
-        "Core Concept: Detailed explanation of the main idea. • Essential part one • Essential part two",
-        "Key Detail: Specific nuance to understand. • Sub-point A • Sub-point B",
-        "Practical Tip: How to apply this immediately. • Implementation step • Expected result"
+        "Core Concept: Provide an extremely detailed, multi-sentence explanation of the concept, breaking down the mechanics. • Provide deep, actionable insight one • Provide deep actionable insight two • Provide an advanced tip",
+        "Key Detail: Go deeply into the nuance of this specific part of the technique. • Sub-point A with explanation • Sub-point B with explanation",
+        "Practical Tip: A highly specific, step-by-step breakdown of how to apply this. • Implementation step one • Expected result and feeling"
       ],
-      "practicePrompt": "Spend 10 minutes doing exactly this: [specific action]",
+      "practicePrompt": "A highly detailed, step-by-step breakdown of the practice routine. Do exactly this: 1. Start by... 2. Then focus on... 3. Finally...",
       "commonMistakes": [
-        "Most common mistake beginners make",
-        "Second mistake to watch for"
+        "Detailed explanation of the most common mistake, WHY it happens, and exactly HOW to fix it.",
+        "Detailed explanation of the second mistake to watch for, its root cause, and the mental model to overcome it."
       ],
       "scenarioChallenge": {
-        "prompt": "Scenario description — only present for strategic hobbies",
-        "options": ["Option A", "Option B", "Option C", "Option D"],
+        "prompt": "A highly detailed scenario description reading like a deep case study. Only present for strategic hobbies.",
+        "options": ["Detailed Option A", "Detailed Option B", "Detailed Option C", "Detailed Option D"],
         "correctIndex": 1,
-        "explanation": "Why this option is correct and the others are not"
+        "explanation": "A comprehensive breakdown of exactly why this option is correct, analyzing the mechanics, and why the others fail."
       }
     }
   ]

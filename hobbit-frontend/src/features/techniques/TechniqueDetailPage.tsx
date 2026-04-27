@@ -4,7 +4,6 @@ import {
   ChevronLeft,
   CheckCircle2,
   Layout,
-  ExternalLink,
   ChevronRight,
   Trophy
 } from 'lucide-react';
@@ -252,32 +251,27 @@ export default function TechniqueDetailPage() {
 
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col items-center gap-16">
                   {technique.videos.map((video) => (
-                    <a
-                      key={video.videoId}
-                      href={video.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex flex-col gap-3 rounded-2xl overflow-hidden"
-                    >
-                      <div className="aspect-video rounded-2xl overflow-hidden relative border border-gray-100">
-                        <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <div className="w-12 h-12 rounded-full bg-white/90 backdrop-blur shadow-xl flex items-center justify-center scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all">
-                            <ExternalLink size={20} className="text-gray-900 ml-0.5" />
-                          </div>
-                        </div>
+                    <div key={video.videoId} className="flex flex-col gap-6 w-full max-w-3xl mx-auto">
+                      <div className="relative aspect-video rounded-[32px] overflow-hidden border-[12px] border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-transform duration-500 hover:scale-[1.02]">
+                        <iframe
+                          className="absolute top-0 left-0 w-full h-full"
+                          src={`https://www.youtube.com/embed/${video.videoId}`}
+                          title={video.title}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
                       </div>
-                      <div>
-                        <div className="text-[17px] font-semibold text-gray-900 leading-snug line-clamp-2">
+                      <div className="px-4 text-center">
+                        <h3 className="text-2xl font-bold text-slate-900 leading-tight mb-2">
                           {video.title}
-                        </div>
-                        <div className="text-sm font-medium text-gray-400 mt-1">
+                        </h3>
+                        <p className="text-sm font-bold text-indigo-500 uppercase tracking-[0.2em]">
                           {video.channelName}
-                        </div>
+                        </p>
                       </div>
-                    </a>
+                    </div>
                   ))}
                 </div>
               </section>

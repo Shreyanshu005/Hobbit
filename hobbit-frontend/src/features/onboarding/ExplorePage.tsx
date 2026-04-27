@@ -71,6 +71,7 @@ export default function ExplorePage() {
             scrollRef={scrollRef}
             onOptionSelect={() => {}}
             onScrollComplete={() => {}}
+            disableAnimation={true}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center text-slate-400">

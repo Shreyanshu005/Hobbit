@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import type { RefObject } from 'react';
 import { cn } from '../../../utils/cn';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
@@ -18,6 +19,7 @@ interface ChatMessagesProps {
   scrollRef: RefObject<HTMLDivElement | null>;
   onOptionSelect: (option: string, field: 'level' | 'goal') => void;
   onScrollComplete: () => void;
+  disableAnimation?: boolean;
 }
 
 export function ChatMessages({ 
@@ -25,7 +27,8 @@ export function ChatMessages({
   status, 
   scrollRef, 
   onOptionSelect,
-  onScrollComplete
+  onScrollComplete,
+  disableAnimation = false
 }: ChatMessagesProps) {
   const filteredMessages = messages.filter(m => m.role !== 'system');
 
@@ -36,23 +39,41 @@ export function ChatMessages({
         className="w-full max-w-3xl mx-auto px-6 space-y-8 scroll-smooth pb-8 pt-8 flex flex-col flex-1 min-h-0 overflow-y-auto rounded-[32px] border border-black/5 bg-white/30 backdrop-blur-sm"
       >
         <div className="space-y-8 shrink-0">
-          {filteredMessages.map((msg, idx) => (
-            <div key={idx} className={cn(
-              "flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300",
-              msg.role === 'user' ? "items-end" : "items-start"
-            )}>
-              {msg.role === 'user' ? (
-                <div className="text-slate-900 font-medium max-w-[85%] text-lg md:text-xl text-right bg-black/5 px-4 py-2 rounded-2xl rounded-tr-sm">
-                  {msg.content}
-                </div>
-              ) : (
-                <div className="flex items-start gap-2 w-full">
+          {filteredMessages.map((msg, idx) => {
+            const isLast = idx === filteredMessages.length - 1;
+            const messageKey = `${idx}-${msg.role}-${msg.content.substring(0, 10)}`;
+            
+            return (
+              <div key={messageKey} className={cn(
+                "flex flex-col mb-6",
+                msg.role === 'user' ? "items-end" : "items-start"
+              )}>
+                {msg.role === 'user' ? (
+                  <motion.div 
+                    initial={disableAnimation ? false : { y: 400, opacity: 0, scale: 0.5 }}
+                    animate={{ y: 0, opacity: 1, scale: 1 }}
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 140, 
+                      damping: 15,
+                      mass: 0.8
+                    }}
+                    className="text-slate-900 font-medium max-w-[85%] text-lg md:text-xl text-right bg-black/5 px-5 py-3 rounded-2xl rounded-tr-sm shadow-sm"
+                  >
+                    {msg.content}
+                  </motion.div>
+                ) : (
+                  <div className={cn(
+                    "flex items-start gap-2 w-full",
+                    !disableAnimation && "animate-in fade-in slide-in-from-bottom-2 duration-500",
+                    isLast ? "" : ""
+                  )}>
                   <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex flex-col items-center justify-center mt-1 -ml-2">
                     <img src={logoPng} alt="AI Logo" className="w-full h-full object-contain" />
                   </div>
                   <div className="space-y-4 flex-1">
                     <div className="flex flex-col gap-3">
-                      {idx === filteredMessages.length - 1 ? (
+                      {idx === filteredMessages.length - 1 && !disableAnimation ? (
                         <TypewriterText 
                           text={msg.content} 
                           onComplete={onScrollComplete}
@@ -86,13 +107,15 @@ export function ChatMessages({
                 </div>
               )}
             </div>
-          ))}
-          {status === 'checking' && (
-            <div className="flex items-center px-4 animate-in fade-in duration-300">
-              <LoadingSpinner size={80} fullHeight={false} />
-            </div>
-          )}
-        </div>
+          );
+        })}
+
+        {status === 'checking' && (
+          <div className="flex items-center px-4 animate-in fade-in duration-300">
+            <LoadingSpinner size={80} fullHeight={false} />
+          </div>
+        )}
+      </div>
       </div>
     </div>
   );
