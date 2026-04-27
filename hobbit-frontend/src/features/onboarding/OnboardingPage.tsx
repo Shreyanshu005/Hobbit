@@ -10,7 +10,7 @@ import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { ChatMessages } from './components/ChatMessages';
 import { ChatInput } from './components/ChatInput';
 import { HobbyButton } from '../../components/atoms/HobbyButton';
-import { Plus } from 'lucide-react';
+
 
 export type Message = {
   role: 'user' | 'assistant' | 'system';
@@ -428,7 +428,7 @@ export default function OnboardingPage() {
         </div>
       ) : (
         <>
-          <div className="w-full hidden md:flex items-center justify-between pt-3 pb-3 shrink-0 max-w-3xl mx-auto">
+          <div className="w-full hidden lg:flex items-center justify-between pt-3 pb-3 shrink-0 max-w-3xl mx-auto">
             <span className="text-slate-400 font-medium text-lg md:text-xl">
               To personalize your course, let's understand your requirements.
             </span>
@@ -437,8 +437,7 @@ export default function OnboardingPage() {
               variant="outline"
               className="rounded-full px-4 py-2 flex items-center gap-1.5 text-sm shrink-0"
             >
-              <Plus className="w-4 h-4" />
-              New Chat
+              Reset
             </HobbyButton>
           </div>
 

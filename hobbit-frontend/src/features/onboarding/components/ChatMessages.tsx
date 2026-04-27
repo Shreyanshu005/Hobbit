@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import type { RefObject } from 'react';
+import { motion } from 'framer-motion';
 import { cn } from '../../../utils/cn';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
 import { TypewriterText } from '../../../components/TypewriterText';
@@ -30,6 +31,11 @@ export function ChatMessages({
   onScrollComplete,
   disableAnimation = false
 }: ChatMessagesProps) {
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const filteredMessages = messages.filter(m => m.role !== 'system');
 
   return (
@@ -50,7 +56,7 @@ export function ChatMessages({
               )}>
                 {msg.role === 'user' ? (
                   <motion.div 
-                    initial={disableAnimation ? false : { y: 400, opacity: 0, scale: 0.5 }}
+                    initial={(disableAnimation || !hasMounted || !isLast) ? false : { y: 400, opacity: 0, scale: 0.5 }}
                     animate={{ y: 0, opacity: 1, scale: 1 }}
                     transition={{ 
                       type: "spring", 
